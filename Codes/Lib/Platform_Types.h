@@ -1,15 +1,19 @@
  /******************************************************************************
  *
+ * Module: Common - Platform Abstraction
+ *
  * File Name: Platform_Types.h
  *
- * Description: Platform types
+ * Description: Platform types for AVR
  *
  * Author: Ahmed Nabil
  *
  *******************************************************************************/
 
-#ifndef _PLATFORM_TYPES_H_
-#define _PLATFORM_TYPES_H_
+#ifndef PLATFORM_TYPES_H
+#define PLATFORM_TYPES_H
+
+#define SYS_CLOCK_FREQUENCY				1000000UL
 
 /*
  * CPU register type width
@@ -21,19 +25,19 @@
 /*
  * Bit order definition
  */
-#define MSB_FIRST                   (0u)        /* Big Endian bit ordering        */
-#define LSB_FIRST                   (1u)        /* Little Endian bit ordering     */
+#define MSB_FIRST                   (0u)        /* Big endian bit ordering        */
+#define LSB_FIRST                   (1u)        /* Little endian bit ordering     */
 
 /*
  * Byte order definition
  */
-#define HIGH_BYTE_FIRST             (0u)        /* Big Endian byte ordering       */
-#define LOW_BYTE_FIRST              (1u)        /* Little Endian byte ordering    */
+#define HIGH_BYTE_FIRST             (0u)        /* Big endian byte ordering       */
+#define LOW_BYTE_FIRST              (1u)        /* Little endian byte ordering    */
 
 /*
- * Platform type and Endianess definitions
+ * Platform type and endianess definitions, specific for AVR
  */
-#define CPU_TYPE            CPU_TYPE_32
+#define CPU_TYPE            CPU_TYPE_8
 
 #define CPU_BIT_ORDER       LSB_FIRST
 #define CPU_BYTE_ORDER      LOW_BYTE_FIRST
@@ -48,14 +52,7 @@
 #define TRUE        (1u)
 #endif
 
-/* This is used to define the void pointer to zero definition */
-#ifndef NULL_PTR
-#define NULL_PTR          ((void *)0)
-#endif
-
-#ifndef NULL
-#define NULL                0
-#endif
+#define NULL_PTR	((void*)0)
 
 typedef unsigned char         boolean;
 
