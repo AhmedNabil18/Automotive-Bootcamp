@@ -11,7 +11,7 @@
  **---- Includes ----**
  **------------------**/
 #include "S_PaymentSys.h"
-#include "LinkedList.h"
+#include "../../Lib/LinkedList.h"
 
 /**
  ** GLOBAL VARIABLES
