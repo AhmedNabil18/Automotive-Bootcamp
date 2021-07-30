@@ -11,9 +11,10 @@
 #include "Platform_Types.h"
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- FUNCTION-LIKE MACROS -*-*-*-*-*/
-#define REG_SET_BIT(Reg, pinNum)		((Reg) |= (1<<pinNum))
-#define REG_CLR_BIT(Reg, pinNum)		((Reg) &= ~(1<<pinNum))
-
+#define REG_SET_BIT(Reg, pinNum)			((Reg) |= (1<<pinNum))
+#define REG_CLR_BIT(Reg, pinNum)			((Reg) &= ~(1<<pinNum))
+#define BIT_IS_SET(Reg,pinNum)				(Reg & (1<<pinNum))
+#define BIT_IS_CLR(Reg,pinNum)				(!(Reg & (1<<pinNum)))
 /*-* PIN NUMBERS *-*/
 #define PIN_0		0
 #define PIN_1		1
@@ -97,6 +98,13 @@
 #define UART_UCSRA_REG			(*((volatile uint8_t*)(0x2B)))
 #define UART_UCSRB_REG			(*((volatile uint8_t*)(0x2A)))
 #define UART_UBRRL_REG			(*((volatile uint8_t*)(0x29)))
+
+
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+/*-*-*-*-*-*-*-*-*-*-*-*- SPI REGISTERS -*-*-*-*-*-*-*-*-*-*-*-*/
+#define SPI_SPDR_REG			(*((volatile uint8_t*)(0x2F)))
+#define SPI_SPSR_REG			(*((volatile uint8_t*)(0x2E)))
+#define SPI_SPCR_REG			(*((volatile uint8_t*)(0x2D)))
 
 
 #endif /* ATMEGA32_REGISTERS_H_ */
