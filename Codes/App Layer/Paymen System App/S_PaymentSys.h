@@ -15,8 +15,8 @@
  **------------------**/
 #include <stdlib.h>
 #include <stdio.h>
-#include "Platform_Types.h"
-#include "StringManipulation.h"
+#include "../../Lib/Platform_Types.h"
+#include "../../Lib/StringManipulation.h"
 
 /**
  ** MACROS and CONSTANTS

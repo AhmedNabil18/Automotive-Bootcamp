@@ -2,7 +2,7 @@
 #define _STACK_DS_H_
 
 #include <stdlib.h>
-#include "Platform_Types.h"
+#include "../../Lib/Platform_Types.h"
 
 /****************************************************************
  ********************* Stack With Linked List *******************

@@ -1,7 +1,7 @@
 #ifndef _TEST_CASES_H_
 #define _TEST_CASES_H_
 
-#include "X_O_Application.h"
+#include "../X_O_Application.h"
 #include "Test_Cases_Cfg.h"
 
 #define TC_PASSED       1

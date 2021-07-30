@@ -3,8 +3,7 @@
 
 #include <stdio.h>
 #include "Test_Cases_Cfg.h"
-#include "Platform_Types.h"
-#include "S_PaymentSys.h"
+#include "../S_PaymentSys.h"
 
 #define TC_PASSED       1
 #define TC_FAILED       0

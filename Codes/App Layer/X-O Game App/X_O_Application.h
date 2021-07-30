@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include "Platform_Types.h"
+#include "../../Lib/Platform_Types.h"
 
 #define X_O_ERROR_OK                0
 #define X_O_ERROR_INVALID_INPUT    -1
