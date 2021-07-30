@@ -36,6 +36,11 @@
 #define SREG_REG				(*((volatile uint8_t*)(0x5F)))
 #define SREG_I_BIT				7U
 
+#define SFIOR_REG				(*((volatile uint8_t*)(0x50)))
+#define SFIOR_ADTS2		7U
+#define SFIOR_ADTS1		6U
+#define SFIOR_ADTS0		5U
+
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*-*-*-*-*-*-*-*- DIO REGISTERS -*-*-*-*-*-*-*-*-*-*-*-*/
 /*-* PORT A Registers *-*/
@@ -107,12 +112,20 @@
 #define SPI_SPCR_REG			(*((volatile uint8_t*)(0x2D)))
 
 
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*-*-*-*-*-*-*-*- I2C REGISTERS -*-*-*-*-*-*-*-*-*-*-*-*/
 #define I2C_TWCR_REG			(*((volatile uint8_t*)(0x56)))
 #define I2C_TWDR_REG			(*((volatile uint8_t*)(0x23)))
 #define I2C_TWAR_REG			(*((volatile uint8_t*)(0x22)))
 #define I2C_TWSR_REG			(*((volatile uint8_t*)(0x21)))
 #define I2C_TWBR_REG			(*((volatile uint8_t*)(0x20)))
+
+
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+/*-*-*-*-*-*-*-*-*-*-*-*- ADC REGISTERS -*-*-*-*-*-*-*-*-*-*-*-*/
+#define ADC_ADMUX_REG			(*((volatile uint8_t*)(0x27)))
+#define ADC_ADCSRA_REG			(*((volatile uint8_t*)(0x26)))
+#define ADC_ADCH_REG			(*((volatile uint8_t*)(0x25)))
+#define ADC_ADCL_REG			(*((volatile uint8_t*)(0x24)))
 
 #endif /* ATMEGA32_REGISTERS_H_ */
