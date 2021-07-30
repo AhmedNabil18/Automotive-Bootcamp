@@ -17,11 +17,15 @@
 
 /*************************************************************************************
 * Service Name: stringLength
-* Parameters (in): string1 -> Pointer to string.
+* Parameters (in): pau32_array -> Pointer to array of data to search in.
+*                  u8_arraySize -> Size of the array pau32_array.
+*                  u32_number -> The number to be searched.
 * Parameters (inout): None
 * Parameters (out):None
-* Return value: uint8_t -> unsigned character returns the length of the string + NULL Terminator
-* Description: Function to count the number of elements in the string including the NULL Terminator
+* Return value: uint8_t -> unsigned character returns the index of the u32_number.
+*                          (-1) returned if the u32_number not found.
+* Description: Function to search for u32_number inside the pau32_array and return its index
+*              if found, otherwise returns (-1).
 * *************************************************************************************/
 uint8_t stringLength(uint8_t* string1)
 {
@@ -36,8 +40,10 @@ uint8_t stringLength(uint8_t* string1)
 uint8_t stringCompare(uint8_t* string1, uint8_t* string2)
 {
     uint8_t u8_loopIndex=0;
-    if(stringLength(string1) != stringLength(string2))
-        return 0;
+    if(stringLength(string1) > stringLength(string2))
+        return 2;
+    if(stringLength(string1) < stringLength(string2))
+        return 3;
     while(string1[u8_loopIndex] != '\0')
     {
         if(string1[u8_loopIndex] != string2[u8_loopIndex])
@@ -47,15 +53,55 @@ uint8_t stringCompare(uint8_t* string1, uint8_t* string2)
     return 1;
 }
 
-void stringCopy(uint8_t* stringSource, uint8_t* stringDestination)
+
+uint8_t Max_String_Num(uint8_t* string1, uint8_t* string2)
 {
-    uint8_t u8_loopIndex=0;
-    while(stringSource[u8_loopIndex] != '\0')
+    uint8_t u8_retValue = stringCompare(string1,string2);
+
+    switch(u8_retValue)
     {
-        stringDestination[u8_loopIndex] = stringSource[u8_loopIndex];
+    case 1:
+        /* Two Numbers are equal */
+        return 0;
+    case 2:
+        /* string 1 > string 2 */
+        return 1;
+    case 3:
+        /* string 2 > string 1 */
+        return 2;
+    case 0:
+        break;
+    default:
+        break;
+    }
+    uint8_t u8_loopIndex = 0;
+
+    while(string1[u8_loopIndex] != '\0')
+    {
+        if(string1[u8_loopIndex] > string2[u8_loopIndex])
+            return 1;
+        else if(string1[u8_loopIndex] < string2[u8_loopIndex])
+            return 2;
         u8_loopIndex++;
     }
-    stringDestination[u8_loopIndex] = '\0';
+    return 3;
+}
+
+void EmptyString(uint8_t *string)
+{
+	uint8_t u8_loopIndex=0;
+	while(string[u8_loopIndex] != '\0')
+		string[u8_loopIndex++] = '\0';
+}
+
+void stringCopy(uint8_t* source, uint8_t* destination)
+{
+    uint8_t u8_loopIndex=0;
+    while(source[u8_loopIndex] != '\0')
+    {
+	    destination[u8_loopIndex] = source[u8_loopIndex];
+	    u8_loopIndex++;
+    }
 }
 
 /*

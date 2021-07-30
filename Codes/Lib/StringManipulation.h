@@ -12,7 +12,7 @@
  **---- Includes ----**
  **------------------**/
 #include <stdlib.h>
-#include "Platform_Types.h"
+#include "MCAL/Platform_Types.h"
 
 
 
@@ -23,9 +23,11 @@
 /**
  ** FUNCTIONS PROTOTYPE
  **/
+void stringCopy(uint8_t* source, uint8_t* destination);
 uint8_t stringCompare(uint8_t* string1, uint8_t* string2);
 uint8_t stringLength(uint8_t* string1);
-void stringCopy(uint8_t* stringSource, uint8_t* stringDestination);
+uint8_t Max_String_Num(uint8_t* string1, uint8_t* string2);
+void EmptyString(uint8_t *string);
 #endif // _STRINGMANIPULATION_H_
 
 
