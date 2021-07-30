@@ -85,14 +85,14 @@ enuSpi_Status_t Spi_init(void)
 	SPI_SPCR_REG &= ~(1<<SPI_SPCR_SPR1); //fosc/2
 	SPI_SPCR_REG |= ((SPI_FOSC_DIV & 0x03)<<SPI_SPCR_SPR0); //fosc/2
 	#else		/* If chosen to be slave */
-	DIO_PORTB_DIR |= (1<<SPI_MOSI_PIN);
-	DIO_PORTB_DIR &= ~(1<<SPI_MISO_PIN);
+	DIO_PORTB_DIR |= (1<<SPI_MISO_PIN);
+	DIO_PORTB_DIR &= ~(1<<SPI_MOSI_PIN);
 	DIO_PORTB_DIR &= ~(1<<SPI_SS_PIN);
 	DIO_PORTB_DIR &= ~(1<<SPI_SCK_PIN);
-	SPI_SPCR_REG &= ~(1<<SPI_SPCR_MSTR); //master enable
+	SPI_SPCR_REG &= ~(1<<SPI_SPCR_MSTR); //slave enable
 	#endif
 	/* Enable the SPI Module */
-	SPI_SPCR_REG |= 1<<SPI_SPCR_SPE; //spi enable
+	SPI_SPCR_REG |= 1<<SPI_SPCR_SPE; //SPI enable
 
 	
 	/* Set the SPI Module State to Initialized*/
@@ -138,6 +138,48 @@ enuSpi_Status_t Spi_MasterSendByte(uint8_t u8_data)
 	/* Flush the buffer to clear the SPIF bit */
 	u8_buffer = SPI_SPDR_REG;
 	
+	return SPI_STATUS_ERROR_OK;
+}
+#endif
+
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+* Service Name: Spi_MasterSendPacket
+* Sync/Async: Synchronous
+* Reentrancy: Non reentrant
+* Parameters (in): pu8_Data - Pointer Data to be sent by the SPI Master to the slave
+*				  u16_packetSize - Size of the given data string.
+* Parameters (inout): None
+* Parameters (out): None
+* Return value: enuSpi_Status_t - return the status of the function ERROR_OK or NOT_OK
+* Description: Function to Send Byte by the Master to the slave.
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+#if SPI_ROLE == SPI_MASTER
+enuSpi_Status_t Spi_MasterSendPacket(uint8_t *pu8_Data, uint16_t u16_packetSize)
+{
+/**************************************************************************************/
+/*								Start of Error Checking								  */
+/**************************************************************************************/
+	/* Check if the Spi module is not initialized */
+	if (SPI_STATUS_INIT != genuSpi_Status)
+	{
+		return SPI_STATUS_NOT_INIT;
+	}else{/*Nothing to here*/}
+		
+/**************************************************************************************/
+/*								End of Error Checking								  */
+/**************************************************************************************/
+
+/**************************************************************************************/
+/*								Function Implementation								  */
+/**************************************************************************************/
+	uint8_t u8_loopIndex=0;
+	
+	for(u8_loopIndex=0; u8_loopIndex<u16_packetSize; u8_loopIndex++)
+	{
+		if(Spi_MasterSendByte(pu8_Data[u8_loopIndex]) != SPI_STATUS_ERROR_OK)
+			return SPI_STATUS_ERROR_NOK;
+	}
+		
 	return SPI_STATUS_ERROR_OK;
 }
 #endif
@@ -270,7 +312,48 @@ enuSpi_Status_t Spi_SlaveReceiveByte(uint8_t* pu8_data)
 	return SPI_STATUS_ERROR_OK;
 }
 #endif
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+* Service Name: Spi_MasterSendPacket
+* Sync/Async: Synchronous
+* Reentrancy: Non reentrant
+* Parameters (in): u16_packetSize - Size of the given data string.
+* Parameters (inout): None
+* Parameters (out): pu8_Data - Pointer Data to be received by the SPI slave
+* Return value: enuSpi_Status_t - return the status of the function ERROR_OK or NOT_OK
+* Description: Function to Send Byte by the Master to the slave.
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+#if SPI_ROLE == SPI_SLAVE
+enuSpi_Status_t Spi_SlaveReceivePacket(uint8_t *pu8_Data, uint16_t u16_packetSize)
+{
+/**************************************************************************************/
+/*								Start of Error Checking								  */
+/**************************************************************************************/
+	/* Check if the Spi module is not initialized */
+	if (SPI_STATUS_INIT != genuSpi_Status)
+	{
+		return SPI_STATUS_NOT_INIT;
+	}else{/*Nothing to here*/}
+		
+/**************************************************************************************/
+/*								End of Error Checking								  */
+/**************************************************************************************/
 
+/**************************************************************************************/
+/*								Function Implementation								  */
+/**************************************************************************************/
+	uint8_t u8_loopIndex=0;
+		
+	for(u8_loopIndex=0; u8_loopIndex<u16_packetSize; u8_loopIndex++)
+	{
+		if(Spi_SlaveReceiveByte(&pu8_Data[u8_loopIndex]) != SPI_STATUS_ERROR_OK)
+			return SPI_STATUS_ERROR_NOK;
+		if(pu8_Data[u8_loopIndex] == '\0')
+			break;
+	}
+		
+	return SPI_STATUS_ERROR_OK;
+}
+#endif
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 * Service Name: Spi_EnableNotification

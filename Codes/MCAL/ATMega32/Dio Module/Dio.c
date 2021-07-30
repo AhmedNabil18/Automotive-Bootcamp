@@ -11,6 +11,7 @@
 #include "..\ATMega32_Registers.h"
 #include "Dio_Cfg.h"
 
+
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
 static strDio_Config_t * pstrDio_pinsConfig = NULL_PTR;
@@ -33,29 +34,13 @@ static uint8_t u8_Dio_Status = DIO_NOT_INITIALIZED;
 enuDio_Status_t Dio_init(strDio_Config_t* pstrDio_pins)
 {
 	uint8_t u8_loopIndex=0;
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
 	/*-* check if the input configuration pointer is not a NULL_PTR *-*/
 	if (NULL_PTR == pstrDio_pins)
 	{
 		return DIO_STATUS_NULL_ARGUMENT;
 	}
-	/*-* check if the Dio is already initialized *-*/
-	if (DIO_INITIALIZED == u8_Dio_Status)
-	{
-		return DIO_STATUS_ALREADY_INIT;
-	}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
 	for (u8_loopIndex=0; u8_loopIndex<DIO_USED_PINS_NUM; u8_loopIndex++)
 	{
-		/* Check if the pin number is out of range */
 		if ((pstrDio_pins[u8_loopIndex].u8_PinNum) > PIN_7)
 		{
 			return DIO_STATUS_PIN_NUM_INVALID;
@@ -91,7 +76,6 @@ enuDio_Status_t Dio_init(strDio_Config_t* pstrDio_pins)
 		}
 	}
 	pstrDio_pinsConfig = pstrDio_pins;
-	/* Change the status of the DIO Module to initialized */
 	u8_Dio_Status = DIO_INITIALIZED;
 	return DIO_STATUS_ERROR_OK;
 }
@@ -109,9 +93,6 @@ enuDio_Status_t Dio_init(strDio_Config_t* pstrDio_pins)
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 enuDio_Status_t Dio_writePin(uint8_t u8_pinID, uint8_t u8_pinValue)
 {
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
 	/*-* Check if the pinID is out of configured range *-*/
 	if(u8_pinID > DIO_USED_PINS_NUM)
 	{
@@ -122,13 +103,6 @@ enuDio_Status_t Dio_writePin(uint8_t u8_pinID, uint8_t u8_pinValue)
 	{
 		return DIO_STATUS_NOT_INIT;
 	}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
 	switch (pstrDio_pinsConfig[u8_pinID].u8_PortNum)
 	{
 		case PORT_A:
@@ -174,9 +148,6 @@ enuDio_Status_t Dio_writePin(uint8_t u8_pinID, uint8_t u8_pinValue)
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 enuDio_Status_t Dio_togglePin(uint8_t u8_pinID)
 {
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
 	/*-* Check if the pinID is out of configured range *-*/
 	if(u8_pinID > DIO_USED_PINS_NUM)
 	{
@@ -187,13 +158,6 @@ enuDio_Status_t Dio_togglePin(uint8_t u8_pinID)
 	{
 		return DIO_STATUS_NOT_INIT;
 	}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
 	switch (pstrDio_pinsConfig[u8_pinID].u8_PortNum)
 	{
 		case PORT_A:
@@ -226,9 +190,6 @@ enuDio_Status_t Dio_togglePin(uint8_t u8_pinID)
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 enuDio_Status_t Dio_readPin(uint8_t u8_pinID, uint8_t *pu8_pinValue)
 {
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
 	/*-* Check if the pinID is out of configured range *-*/
 	if(u8_pinID > DIO_USED_PINS_NUM)
 	{
@@ -239,13 +200,6 @@ enuDio_Status_t Dio_readPin(uint8_t u8_pinID, uint8_t *pu8_pinValue)
 	{
 		return DIO_STATUS_NOT_INIT;
 	}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
 	switch (pstrDio_pinsConfig[u8_pinID].u8_PortNum)
 	{
 		case PORT_A:
