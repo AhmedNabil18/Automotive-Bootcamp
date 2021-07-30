@@ -107,6 +107,11 @@ enuMotor_Status_t Motor_run(uint8_t u8_motorID, uint8_t u8_speed, uint8_t u8_dir
 /**************************************************************************************/
 /*								Function Implementation								  */
 /**************************************************************************************/
+	if(u8_speed == 0) 
+	{
+		Motor_stop(u8_motorID);
+		return MOTOR_STATUS_ERROR_OK;
+	}
 	if(u8_direction == MOTOR_DIR_CLK_WISE) /* Activate the Motor in the Clock Wise Direction */
 	{
 		Dio_writePin(str_MotorsConfig[u8_motorID].u8_MotorDirPin1, PIN_HIGH);
