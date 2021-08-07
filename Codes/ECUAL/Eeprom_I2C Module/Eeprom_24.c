@@ -395,6 +395,7 @@ enuEeprom_24_Status_t  Eeprom_24_writePacket(uint16_t u16_location, uint8_t *pu8
 		{
 			if(I2C_MasterSendGeneral(u8_slaveAddr, u8_wordAddr, EEPROM_24_LOC_SIZE, pu8_data, u16_dataLen) != I2C_STATUS_ERROR_OK)
 				return EEPROM_24_STATUS_ERROR_NOK;
+			Delay_ms(15);
 			return EEPROM_24_STATUS_ERROR_OK;
 		}
 		if(I2C_MasterSendGeneral(u8_slaveAddr, u8_wordAddr, EEPROM_24_LOC_SIZE, pu8_data, length) != I2C_STATUS_ERROR_OK)
@@ -527,6 +528,7 @@ enuEeprom_24_Status_t  Eeprom_24_readPacket(uint16_t u16_location, uint8_t *pu8_
 		{
 			if(I2C_MasterReceiveGeneral(u8_slaveAddr, u8_wordAddr, EEPROM_24_LOC_SIZE, pu8_data, u16_dataLen) != I2C_STATUS_ERROR_OK)
 				return EEPROM_24_STATUS_ERROR_NOK;
+			Delay_ms(15);
 			return EEPROM_24_STATUS_ERROR_OK;
 		}
 		if(I2C_MasterReceiveGeneral(u8_slaveAddr, u8_wordAddr, EEPROM_24_LOC_SIZE, pu8_data, length) != I2C_STATUS_ERROR_OK)
