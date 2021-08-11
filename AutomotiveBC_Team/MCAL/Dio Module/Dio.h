@@ -12,9 +12,24 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Dio_Cfg.h"
-#include "..\Platform_Types.h"
+#include "..\..\Microcontroller\Platform_Types.h"
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/
+
+/*-* PIN NUMBERS *-*/
+#define PIN_0		0
+#define PIN_1		1
+#define PIN_2		2
+#define PIN_3		3
+#define PIN_4		4
+#define PIN_5		5
+#define PIN_6		6
+#define PIN_7		7
+/*-* PORT NUMBERS *-*/
+#define PORT_A		0
+#define PORT_B		1
+#define PORT_C		2
+#define PORT_D		3
 
 /*-* PIN VALUES *-*/
 #define PIN_LOW		0U
