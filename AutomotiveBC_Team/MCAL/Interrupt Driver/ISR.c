@@ -9,7 +9,6 @@
 
 /*- GLOBAL STATIC VARIABLES
 -------------------------------*/
-static volatile uint32_t gu32_OvfCounts = Initial_Value;
 
 static pfINT0_CallBack_t ExtInt0Callback;
 
