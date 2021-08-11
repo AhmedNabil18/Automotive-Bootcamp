@@ -9,7 +9,7 @@
 
 /*- GLOBAL STATIC VARIABLES
 -------------------------------*/
-static volatile uint32_t gu32_OvfCounts = 0;
+static volatile uint32_t gu32_OvfCounts = Initial_Value;
 
 static pfINT0_CallBack_t ExtInt0Callback;
 
@@ -18,41 +18,41 @@ static pfINT0_CallBack_t ExtInt0Callback;
 -------------------------------*/
 void EnableGlobalInterrupts(void)
 {
-	REG_SET_BIT(SREG_R, GLOBAL_INT);
+	SET_BIT(SREG_R, GLOBAL_INT);
 }
 
 void DisableGlobalInterrupts(void)
 {
-	REG_CLR_BIT(SREG_R, GLOBAL_INT);
+	CLEAR_BIT(SREG_R, GLOBAL_INT);
 }
 
 void EnableExternalInterrupts_INT0(uint8_t senseControl)
 {
-	REG_SET_BIT(GICR_R, INT0_B);
+	SET_BIT(GICR_R, INT0_B);
 	switch(senseControl)
 	{
 		case(LOW_LEVEL):
 		{
-			REG_CLR_BIT(MCUCR_R, ISC00_B);
-			REG_CLR_BIT(MCUCR_R, ISC00_B);
+			CLEAR_BIT(MCUCR_R, ISC00_B);
+			CLEAR_BIT(MCUCR_R, ISC00_B);
 			break;
 		}
 		case(LOGIC_CHANGE):
 		{
-			REG_SET_BIT(MCUCR_R, ISC00_B);
-			REG_CLR_BIT(MCUCR_R, ISC00_B);
+			SET_BIT(MCUCR_R, ISC00_B);
+			CLEAR_BIT(MCUCR_R, ISC00_B);
 			break;
 		}
 		case(FALLING_EDGE):
 		{
-			REG_CLR_BIT(MCUCR_R, ISC00_B);
-			REG_SET_BIT(MCUCR_R, ISC00_B);
+			CLEAR_BIT(MCUCR_R, ISC00_B);
+			SET_BIT(MCUCR_R, ISC00_B);
 			break;
 		}
 		case(RISING_EDGE):
 		{
-			REG_SET_BIT(MCUCR_R, ISC00_B);
-			REG_SET_BIT(MCUCR_R, ISC00_B);
+			SET_BIT(MCUCR_R, ISC00_B);
+			SET_BIT(MCUCR_R, ISC00_B);
 			break;
 		}					
 	}
@@ -61,7 +61,7 @@ void EnableExternalInterrupts_INT0(uint8_t senseControl)
 
 void DisableExternalInterrupts_INT0()
 {
-	REG_CLR_BIT(GICR_R, INT0_B);
+	CLEAR_BIT(GICR_R, INT0_B);
 }
 
 
