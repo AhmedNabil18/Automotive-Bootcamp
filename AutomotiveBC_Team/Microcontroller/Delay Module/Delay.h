@@ -2,15 +2,14 @@
  * Delay.h
  *
  * Created: 7/24/2021 11:03:34 AM
- *  Author: Ahmed Nabil
- */ 
-
+ *  Author: Mohamed Magdy
+ */
 
 #ifndef DELAY_H_
 #define DELAY_H_
 
 #include "Delay_Cfg.h"
-#include "../Platform_Types.h"
+#include "../Std_Types.h"
 
 #if F_DELAY_OSC == 1000000
 #define DELAY_MS_ITERATION		13

@@ -2,7 +2,7 @@
  * Delay.c
  *
  * Created: 7/24/2021 11:03:45 AM
- *  Author: Ahmed Nabil
+ *  Author: Mohamed Magdy
  */ 
 #include "Delay.h"
 

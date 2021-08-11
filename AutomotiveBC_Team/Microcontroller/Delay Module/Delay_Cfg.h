@@ -2,7 +2,7 @@
  * Delay_Cfg.h
  *
  * Created: 7/24/2021 11:03:57 AM
- *  Author: Ahmed Nabil
+ *  Author: Mohamed Magdy
  */ 
 
 

@@ -6,22 +6,12 @@
  *
  * Description: Platform types for AVR
  *
- * Author: Ahmed Nabil
+ * Author: Mohamed Magdy
  *
  *******************************************************************************/
 
 #ifndef PLATFORM_TYPES_H
 #define PLATFORM_TYPES_H
-
-#define SYS_CLOCK_FREQUENCY				8000000UL
-
-
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*-*-*-*-*- FUNCTION-LIKE MACROS -*-*-*-*-*/
-#define REG_SET_BIT(Reg, pinNum)			((Reg) |= (1<<pinNum))
-#define REG_CLR_BIT(Reg, pinNum)			((Reg) &= ~(1<<pinNum))
-#define BIT_IS_SET(Reg,pinNum)				(Reg & (1<<pinNum))
-#define BIT_IS_CLR(Reg,pinNum)				(!(Reg & (1<<pinNum)))
 
 /*
  * CPU register type width
@@ -60,19 +50,17 @@
 #define TRUE        (1u)
 #endif
 
-#define NULL_PTR	((void*)0)
-
 typedef unsigned char         boolean;
 
-typedef unsigned char         uint8_t;          /*           0 .. 255             */
-typedef signed char           sint8_t;          /*        -128 .. +127            */
-typedef unsigned short        uint16_t;         /*           0 .. 65535           */
-typedef signed short          sint16_t;         /*      -32768 .. +32767          */
-typedef unsigned long         uint32_t;         /*           0 .. 4294967295      */
-typedef signed long           sint32_t;         /* -2147483648 .. +2147483647     */
-typedef unsigned long long    uint64_t;         /*       0..18446744073709551615  */
-typedef signed long long      sint64_t;
-typedef float                 float32_t;
-typedef double                float64_t;
+typedef unsigned char         uint8;          /*           0 .. 255             */
+typedef signed char           sint8;          /*        -128 .. +127            */
+typedef unsigned short        uint16;         /*           0 .. 65535           */
+typedef signed short          sint16;         /*      -32768 .. +32767          */
+typedef unsigned long         uint32;         /*           0 .. 4294967295      */
+typedef signed long           sint32;         /* -2147483648 .. +2147483647     */
+typedef unsigned long long    uint64;         /*       0..18446744073709551615  */
+typedef signed long long      sint64;
+typedef float                 float32;
+typedef double                float64;
 
 #endif /* PLATFORM_TYPES_H */

@@ -10,36 +10,14 @@
 #ifndef ISR_H_
 #define ISR_H_
 
-#include "../Platform_Types.h"
+#include "ISR_Regs.h"
+#include "../../Microcontroller/Std_Types.h"
+#include "../../Microcontroller/Common_Macros.h"
 
 /*- PRIMITIVE TYPES ----------------------------------------*/
 typedef void (*pfINT0_CallBack_t)(void);
 
-/*- REGISTERS
--------------------------------*/
-#define SREG_R		(*(volatile uint8_t * const)0x005F)
-#define GLOBAL_INT	7
-/*************************************************************************************/
-#define GICR_R		(*(volatile uint8_t * const)0x005B)
 
-#define INT0_B		6
-#define INT1_B		7
-#define INT2_B		5
-/*************************************************************************************/
-#define MCUCR_R		(*(volatile uint8_t * const)0x0055)
-
-#define ISC00_B			0
-#define ISC01_B			1
-#define ISC10_B			2
-#define ISC11_B			3
-
-
-
-#define LOW_LEVEL			0			//The low level of INT0 generates an interrupt request.
-#define LOGIC_CHANGE		1			//Any logical change on INT0 generates an interrupt request.
-#define FALLING_EDGE		2			//The falling edge of INT0 generates an interrupt request.
-#define RISING_EDGE			3			//The rising edge of INT0 generates an interrupt request.
-/*************************************************************************************/
 /*- Vector Table
 -------------------------------*/
 #define INT0         __vector_1					//External Interrupt Request 0
