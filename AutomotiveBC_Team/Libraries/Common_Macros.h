@@ -35,7 +35,7 @@
 #define ROL(REG,num) ( REG= (REG<<num) | (REG>>(8-num)) )
 
 /* Check if a specific bit is set in any register and return true if yes */
-#define BIT_IS_SET(REG,BIT) ( REG & (1<<BIT) ) //reg = 0b0001 0000
+#define BIT_IS_SET(REG,BIT) ( REG & (1<<BIT) )
 
 /* Check if a specific bit is cleared in any register and return true if yes */
 #define BIT_IS_CLEAR(REG,BIT) ( !(REG & (1<<BIT)) )
