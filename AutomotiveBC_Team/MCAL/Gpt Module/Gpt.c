@@ -545,24 +545,24 @@ case(TIMER_1):
 					
 						break;
 					}
-					case(PRESCALER_64):
+					case(PRESCALER_32):
 					{
 						SET_BIT(TCCR2_R, CS20_B);
 						SET_BIT(TCCR2_R, CS21_B);
 						CLEAR_BIT(TCCR2_R, CS22_B);
-					
+						
 						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
 						SET_BIT(TIFR_R, TOV2_B);
-					
+						
 						CLEAR_BIT(TCCR2_R, CS20_B);
 						CLEAR_BIT(TCCR2_R, CS21_B);
 						CLEAR_BIT(TCCR2_R, CS22_B);
-					
+						
 						TCNT2_R = 0x00;
-					
+						
 						break;
 					}
-					case(PRESCALER_256):
+					case(PRESCALER_64):
 					{
 						CLEAR_BIT(TCCR2_R, CS20_B);
 						CLEAR_BIT(TCCR2_R, CS21_B);
@@ -579,10 +579,44 @@ case(TIMER_1):
 					
 						break;
 					}
-					case(PRESCALER_1024):
+					case(PRESCALER_128):
 					{
 						SET_BIT(TCCR2_R, CS20_B);
 						CLEAR_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
+						
+						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+						SET_BIT(TIFR_R, TOV2_B);
+						
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
+						
+						TCNT2_R = 0x00;
+						
+						break;
+					}
+					case(PRESCALER_256):
+					{
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
+					
+						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+						SET_BIT(TIFR_R, TOV2_B);
+					
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
+					
+						TCNT2_R = 0x00;
+					
+						break;
+					}
+					case(PRESCALER_1024):
+					{
+						SET_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
 						SET_BIT(TCCR2_R, CS22_B);
 					
 						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
@@ -624,24 +658,38 @@ case(TIMER_1):
 						CLEAR_BIT(TCCR2_R, CS22_B);
 						break;
 					}
-					case(PRESCALER_64):
+					case(PRESCALER_32):
 					{
 						SET_BIT(TCCR2_R, CS20_B);
 						SET_BIT(TCCR2_R, CS21_B);
 						CLEAR_BIT(TCCR2_R, CS22_B);
 						break;
 					}
-					case(PRESCALER_256):
+					case(PRESCALER_64):
 					{
 						CLEAR_BIT(TCCR2_R, CS20_B);
 						CLEAR_BIT(TCCR2_R, CS21_B);
 						SET_BIT(TCCR2_R, CS22_B);
 						break;
 					}
-					case(PRESCALER_1024):
+					case(PRESCALER_128):
 					{
 						SET_BIT(TCCR2_R, CS20_B);
 						CLEAR_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
+						break;
+					}
+					case(PRESCALER_256):
+					{
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
+						break;
+					}
+					case(PRESCALER_1024):
+					{
+						SET_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
 						SET_BIT(TCCR2_R, CS22_B);
 						break;
 					}
@@ -863,20 +911,16 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 							SET_BIT(TIMSK_R, TOIE2_B);
 							break;
 						}
-						case(PRESCALER_64):
+						case(PRESCALER_32):
 						{
-
 							SET_BIT(TCCR2_R, CS20_B);
 							SET_BIT(TCCR2_R, CS21_B);
 							CLEAR_BIT(TCCR2_R, CS22_B);
 							
 							SET_BIT(TIMSK_R, TOIE2_B);
-							
-							
-
 							break;
 						}
-						case(PRESCALER_256):
+						case(PRESCALER_64):
 						{
 
 							CLEAR_BIT(TCCR2_R, CS20_B);
@@ -889,11 +933,37 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 
 							break;
 						}
-						case(PRESCALER_1024):
+						case(PRESCALER_128):
 						{
 
 							SET_BIT(TCCR2_R, CS20_B);
 							CLEAR_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
+							
+							SET_BIT(TIMSK_R, TOIE2_B);
+							
+							
+
+							break;
+						}
+						case(PRESCALER_256):
+						{
+
+							CLEAR_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
+							
+							SET_BIT(TIMSK_R, TOIE2_B);
+							
+							
+
+							break;
+						}
+						case(PRESCALER_1024):
+						{
+
+							SET_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
 							SET_BIT(TCCR2_R, CS22_B);
 							
 							SET_BIT(TIMSK_R, TOIE2_B);
@@ -936,7 +1006,7 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 
 							break;
 						}
-						case(PRESCALER_64):
+						case(PRESCALER_32):
 						{
 
 							SET_BIT(TCCR2_R, CS20_B);
@@ -945,7 +1015,7 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 
 							break;
 						}
-						case(PRESCALER_256):
+						case(PRESCALER_64):
 						{
 
 							CLEAR_BIT(TCCR2_R, CS20_B);
@@ -954,11 +1024,29 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 
 							break;
 						}
-						case(PRESCALER_1024):
+						case(PRESCALER_128):
 						{
 
 							SET_BIT(TCCR2_R, CS20_B);
 							CLEAR_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
+
+							break;
+						}
+						case(PRESCALER_256):
+						{
+
+							CLEAR_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
+
+							break;
+						}
+						case(PRESCALER_1024):
+						{
+
+							SET_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
 							SET_BIT(TCCR2_R, CS22_B);
 
 							break;
