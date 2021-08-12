@@ -9,14 +9,7 @@
 /*- INCLUDES
 ----------------------------------------------*/
 #include "Gpt.h"
-
-#include "Gpt_Cfg.h"
-#include "Gpt_Regs.h"
-#include "ISR.h"
-#include "Common_Macros.h"
-#include "Platform_Types.h"
-
-//#include "../../Microcontroller/Atmega32 Registers/Gpt_Regs.h"
+#include "../../Microcontroller/Atmega32 Registers/Gpt_Regs.h"
 
 #define GPT_CHANNELS			3
 
