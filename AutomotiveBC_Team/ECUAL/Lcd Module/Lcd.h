@@ -11,12 +11,12 @@
 
 /* INCLUDES */
 
-#include "../../MCAL/Platform_Types.h"
+#include "../../Microcontroller/Platform_Types.h"
 //#include "../../Microcontroller/Utility Module/Common_Macros.h"
 #include "../../MCAL/Dio Module/Dio.h"
 #include "Lcd_Cfg.h"
-#include "../../MCAL/Delay Module/Delay.h"
-#include "../../MCAL/StringManipulation.h"
+//#include "../../MCAL/Delay Module/Delay.h"
+#include "../../Libraries/Utility Module/Utility.h"
 // #include "../../Microcontroller/Utility Module/Utility.h"
 
 #if (AsyncMode == TRUE)

@@ -10,10 +10,10 @@
 #define GPT_H_
 
 /*- INCLUDES -----------------------------------------------*/
+#include "..\..\Microcontroller\Platform_Types.h"
+#include "../Interrupt Driver/ISR.h"
+#include "..\..\Microcontroller\Atmega32 Registers\Gpt_Regs.h"
 
-#include "Platform_Types.h"
-#include "ISR.h"
-#include "Gpt_Regs.h"
 #include "Gpt_Cfg.h"
 //#include "../../MCAL/Interrupt Driver/ISR.h"
 

@@ -16,7 +16,7 @@
 #ifndef  ISR_REGS_H_
 #define  ISR_REGS_H_
 
-#include "Std_Types.h"
+#include "../Std_Types.h"
 
 /*- Interrupt REGISTERS
 -------------------------------*/

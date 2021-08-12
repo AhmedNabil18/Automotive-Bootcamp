@@ -8,7 +8,6 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "App.h"
-#include "../../MCAL/Delay Module/Delay.h"
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
 static enuRobotAction_t enuCurrentAction = ROBOT_ACTION_STOP;
@@ -37,6 +36,9 @@ enuApp_Status_t RobotApp_start(void)
 	if(RobotApp_init() != APP_STATUS_ERROR_OK)
 		return APP_STATUS_ERROR_NOK;
 	EnableGlobalInterrupts();
+	
+	
+	Robot_move(ROBOT_DIR_FRWRD, 5);
 	/* Application Super Loop */
 	while (1)
 	{
@@ -119,7 +121,7 @@ enuApp_Status_t RobotApp_update(void)
 /**************************************************************************************/
 /*								Function Implementation								  */
 /**************************************************************************************/
-	Lcd_asyncSendString((uint8_t*)"A");
+	
 /* Read Ultrasonic Distance */
 	
 
