@@ -13,7 +13,7 @@
 /* CONSTANTS */
 
 /* user set the number of pins used in the project */
-#define GPT_USED_CHANNELS   2
+#define GPT_USED_CHANNELS   3
 
 
 #define TIMER_0   0

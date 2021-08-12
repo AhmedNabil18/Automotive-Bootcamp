@@ -8,7 +8,7 @@
 
 #ifndef GPT_REGS_H_
 #define GPT_REGS_H_
-#include "../../MCAL/Platform_Types.h"
+#include "Platform_Types.h"
 /* Timers registers and bits */
 
 #define TIMSK_R		(*(volatile uint8_t * const)0x0059)

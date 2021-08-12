@@ -9,13 +9,19 @@
 /*- INCLUDES
 ----------------------------------------------*/
 #include "Gpt.h"
-#include "../ATMega32_Registers.h"
+#include "Gpt_Cfg.h"
+#include "Gpt_Regs.h"
+#include "ISR.h"
+#include "Common_Macros.h"
+#include "Platform_Types.h"
 /*- GLOBAL STATIC VARIABLES
 -------------------------------*/
 static volatile uint32_t gu32_T0_OvfCounts = 0;
+static volatile uint32_t gu32_T1_OvfCounts = 0;
 static volatile uint32_t gu32_T2_OvfCounts = 0;
 
 static pfGpt_CallBack_t T0ovfCallback;
+static pfGpt_CallBack_t T1ovfCallback;
 static pfGpt_CallBack_t T2ovfCallback;
 
 enuGpt_Status_t Gpt_Status = GPT_STATUS_ERROR_OK;
@@ -47,13 +53,13 @@ enuGpt_Status_t GptInit(void)
 					case(NORMAL_MODE):
 					{
 						/* making sure timer is OFF */
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 
 						/* set to Normal mode */
-						REG_CLR_BIT(TCCR0_R, WGM01_B);
-						REG_CLR_BIT(TCCR0_R, WGM00_B);
+						CLEAR_BIT(TCCR0_R, WGM01_B);
+						CLEAR_BIT(TCCR0_R, WGM00_B);
 
 						/* Initialize the timer count register */
 						TCNT0_R = 0x00;
@@ -64,6 +70,35 @@ enuGpt_Status_t GptInit(void)
 				}
 				break;
 			}
+			/*******************************************************************/
+			case(TIMER_1):
+			{
+				switch(strGpt_Channels[u8_LoopCounter].u8_Mode)
+				{
+					case(NORMAL_MODE):
+					{
+						/* making sure timer is OFF */
+						CLEAR_BIT(TCCR1B_R, CS10_B);
+						CLEAR_BIT(TCCR1B_R, CS11_B);
+						CLEAR_BIT(TCCR1B_R, CS12_B);
+
+						/* set to Normal mode */
+						CLEAR_BIT(TCCR1A_R, WGM10_B);
+						CLEAR_BIT(TCCR1A_R, WGM11_B);
+						CLEAR_BIT(TCCR1B_R, WGM12_B);
+						CLEAR_BIT(TCCR1B_R, WGM13_B);
+						/* Initialize the timer count register */
+						TCNT1_R = 0x0000;
+						
+						break;
+					}
+					default: return GPT_STATUS_ERROR_NOK;
+				}
+				break;
+			}
+			/************************************************************************/
+			
+			
 			case(TIMER_2):
 			{
 				switch(strGpt_Channels[u8_LoopCounter].u8_Mode)
@@ -71,13 +106,13 @@ enuGpt_Status_t GptInit(void)
 					case(NORMAL_MODE):
 					{
 						/* making sure timer is OFF */
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 
 						/* set to Normal mode */
-						REG_CLR_BIT(TCCR2_R, WGM21_B);
-						REG_CLR_BIT(TCCR2_R, WGM20_B);
+						CLEAR_BIT(TCCR2_R, WGM21_B);
+						CLEAR_BIT(TCCR2_R, WGM20_B);
 
 						/* Initialize the timer count register */
 						TCNT2_R = 0x00;
@@ -120,16 +155,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 				{
 					case(PRESCALER_1):
 					{
-						REG_SET_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						
-						while(BIT_IS_CLR(TIFR_R, TOV0_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV0_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV0_B) == 1);
+						SET_BIT(TIFR_R, TOV0_B);
 							
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);	
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);	
 							
 						TCNT0_R = 0x00;		
 													
@@ -137,16 +172,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_8):
 					{
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_SET_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						
-						while(BIT_IS_CLR(TIFR_R, TOV0_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV0_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV0_B) == 1);
+						SET_BIT(TIFR_R, TOV0_B);
 						
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						
 						TCNT0_R = 0x00;
 																		
@@ -154,16 +189,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_64):
 					{
-						REG_SET_BIT(TCCR0_R, CS00_B);
-						REG_SET_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);		
+						SET_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);		
 						
-						while(BIT_IS_CLR(TIFR_R, TOV0_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV0_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV0_B) == 1);
+						SET_BIT(TIFR_R, TOV0_B);
 						
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						
 						TCNT0_R = 0x00;
 																
@@ -171,16 +206,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_256):
 					{
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_SET_BIT(TCCR0_R, CS02_B);	
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);	
 						
-						while(BIT_IS_CLR(TIFR_R, TOV0_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV0_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV0_B) == 1);
+						SET_BIT(TIFR_R, TOV0_B);
 						
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						
 						TCNT0_R = 0x00;
 																	
@@ -188,16 +223,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_1024):
 					{
-						REG_SET_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_SET_BIT(TCCR0_R, CS02_B);	
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);	
 						
-						while(BIT_IS_CLR(TIFR_R, TOV0_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV0_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV0_B) == 1);
+						SET_BIT(TIFR_R, TOV0_B);
 						
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						
 						TCNT0_R = 0x00;
 																	
@@ -219,58 +254,58 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 				{
 					case(PRESCALER_1):
 					{
-						REG_SET_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						break;
 					}
 					case(PRESCALER_8):
 					{
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_SET_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						break;
 					}
 					case(PRESCALER_64):
 					{
-						REG_SET_BIT(TCCR0_R, CS00_B);
-						REG_SET_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						SET_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						break;
 					}
 					case(PRESCALER_256):
 					{
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_SET_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);
 						break;
 					}
 					case(PRESCALER_1024):
 					{
-						REG_SET_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_SET_BIT(TCCR0_R, CS02_B);
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);
 						break;
 					}
 					default: return GPT_STATUS_ERROR_NOK;
 				}				
 					while(u32_OvfCounter < u32_OvfCounts)
 					{
-						while(BIT_IS_CLR(TIFR_R, TOV0_B) == 1);
+						while(BIT_IS_CLEAR(TIFR_R, TOV0_B) == 1);
 						u32_OvfCounter++;
-						REG_SET_BIT(TIFR_R, TOV0_B);							
+						SET_BIT(TIFR_R, TOV0_B);							
 					}
 					
 					if(u32_CountRemanider != 0)
 					{
 						TCNT0_R = TIMER_0_MAX_TICKS - u32_CountRemanider;
-						while(BIT_IS_CLR(TIFR_R, TOV0_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV0_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV0_B) == 1);
+						SET_BIT(TIFR_R, TOV0_B);
 					}
 					
-						REG_CLR_BIT(TCCR0_R, CS00_B);
-						REG_CLR_BIT(TCCR0_R, CS01_B);
-						REG_CLR_BIT(TCCR0_R, CS02_B);
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
 						
 						TCNT0_R = 0x00;				
 			}
@@ -280,7 +315,187 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 			}
 			
 			break;
-		}case(TIMER_2):
+		}
+/**************************************************************************************************/
+case(TIMER_1):
+{
+	if((u32_Ticks <= TIMER_1_MAX_TICKS) && (u32_Ticks != 0))
+	{
+		/* set ticks */
+		TCNT1_R = TIMER_1_MAX_TICKS - u32_Ticks;
+		
+		/* set to prescaler */
+		switch(strGpt_Channels[ChannelId].u8_Prescaler)
+		{
+			case(PRESCALER_1):
+			{
+				SET_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				while(BIT_IS_CLEAR(TIFR_R, TOV1_B) == 1);
+				SET_BIT(TIFR_R, TOV1_B);
+				
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				TCNT1_R = 0x0000;
+				
+				break;
+			}
+			case(PRESCALER_8):
+			{
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				SET_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				while(BIT_IS_CLEAR(TIFR_R, TOV1_B) == 1);
+				SET_BIT(TIFR_R, TOV1_B);
+				
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				TCNT1_R = 0x0000;
+				
+				break;
+			}
+			case(PRESCALER_64):
+			{
+				SET_BIT(TCCR1B_R, CS10_B);
+				SET_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				while(BIT_IS_CLEAR(TIFR_R, TOV1_B) == 1);
+				SET_BIT(TIFR_R, TOV1_B);
+				
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				TCNT1_R = 0x0000;
+				
+				break;
+			}
+			case(PRESCALER_256):
+			{
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				SET_BIT(TCCR1B_R, CS12_B);
+				
+				while(BIT_IS_CLEAR(TIFR_R, TOV1_B) == 1);
+				SET_BIT(TIFR_R, TOV1_B);
+				
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				TCNT1_R = 0x0000;
+				
+				break;
+			}
+			case(PRESCALER_1024):
+			{
+				SET_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				SET_BIT(TCCR1B_R, CS12_B);
+				
+				while(BIT_IS_CLEAR(TIFR_R, TOV1_B) == 1);
+				SET_BIT(TIFR_R, TOV1_B);
+				
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				
+				TCNT1_R = 0x0000;
+				
+				break;
+			}
+			default: return GPT_STATUS_ERROR_NOK;
+		}
+	}
+	else if((u32_Ticks > TIMER_1_MAX_TICKS) && (u32_Ticks != 0))
+	{
+		uint32_t u32_OvfCounter = 0;
+		float32_t f32_TempValue = (float32_t)u32_Ticks/TIMER_1_MAX_TICKS;
+		uint32_t u32_OvfCounts = f32_TempValue;
+		f32_TempValue -= u32_OvfCounts;
+		uint32_t u32_CountRemanider = f32_TempValue * TIMER_1_MAX_TICKS;
+		
+		/* set to prescaler */
+		switch(strGpt_Channels[ChannelId].u8_Prescaler)
+		{
+			case(PRESCALER_1):
+			{
+				SET_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				break;
+			}
+			case(PRESCALER_8):
+			{
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				SET_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				break;
+			}
+			case(PRESCALER_64):
+			{
+				SET_BIT(TCCR1B_R, CS10_B);
+				SET_BIT(TCCR1B_R, CS11_B);
+				CLEAR_BIT(TCCR1B_R, CS12_B);
+				break;
+			}
+			case(PRESCALER_256):
+			{
+				CLEAR_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				SET_BIT(TCCR1B_R, CS12_B);
+				break;
+			}
+			case(PRESCALER_1024):
+			{
+				SET_BIT(TCCR1B_R, CS10_B);
+				CLEAR_BIT(TCCR1B_R, CS11_B);
+				SET_BIT(TCCR1B_R, CS12_B);
+				break;
+			}
+			default: return GPT_STATUS_ERROR_NOK;
+		}
+		while(u32_OvfCounter < u32_OvfCounts)
+		{
+			while(BIT_IS_CLEAR(TIFR_R, TOV1_B) == 1);
+			u32_OvfCounter++;
+			SET_BIT(TIFR_R, TOV1_B);
+		}
+		
+		if(u32_CountRemanider != 0)
+		{
+			TCNT1_R = TIMER_1_MAX_TICKS - u32_CountRemanider;
+			while(BIT_IS_CLEAR(TIFR_R, TOV1_B) == 1);
+			SET_BIT(TIFR_R, TOV1_B);
+		}
+		
+		CLEAR_BIT(TCCR1B_R, CS10_B);
+		CLEAR_BIT(TCCR1B_R, CS11_B);
+		CLEAR_BIT(TCCR1B_R, CS12_B);
+		
+		TCNT1_R = 0x0000;
+	}
+	else
+	{
+		return GPT_STATUS_ERROR_NOK;
+	}
+	
+	break;
+}
+
+/************************************************************************************************/		
+		
+		
+		
+		case(TIMER_2):
 		{
 			if((u32_Ticks <= TIMER_2_MAX_TICKS) && (u32_Ticks != 0))
 			{
@@ -292,16 +507,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 				{
 					case(PRESCALER_1):
 					{
-						REG_SET_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						SET_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
-						while(BIT_IS_CLR(TIFR_R, TOV2_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV2_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+						SET_BIT(TIFR_R, TOV2_B);
 					
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
 						TCNT2_R = 0x00;
 					
@@ -309,16 +524,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_8):
 					{
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_SET_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
-						while(BIT_IS_CLR(TIFR_R, TOV2_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV2_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+						SET_BIT(TIFR_R, TOV2_B);
 					
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
 						TCNT2_R = 0x00;
 					
@@ -326,16 +541,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_64):
 					{
-						REG_SET_BIT(TCCR2_R, CS20_B);
-						REG_SET_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						SET_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
-						while(BIT_IS_CLR(TIFR_R, TOV2_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV2_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+						SET_BIT(TIFR_R, TOV2_B);
 					
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
 						TCNT2_R = 0x00;
 					
@@ -343,16 +558,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_256):
 					{
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_SET_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
 					
-						while(BIT_IS_CLR(TIFR_R, TOV2_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV2_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+						SET_BIT(TIFR_R, TOV2_B);
 					
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
 						TCNT2_R = 0x00;
 					
@@ -360,16 +575,16 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 					}
 					case(PRESCALER_1024):
 					{
-						REG_SET_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_SET_BIT(TCCR2_R, CS22_B);
+						SET_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
 					
-						while(BIT_IS_CLR(TIFR_R, TOV2_B) == 1);
-						REG_SET_BIT(TIFR_R, TOV2_B);
+						while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+						SET_BIT(TIFR_R, TOV2_B);
 					
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 					
 						TCNT2_R = 0x00;
 					
@@ -391,58 +606,58 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 				{
 					case(PRESCALER_1):
 					{
-						REG_SET_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						SET_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 						break;
 					}
 					case(PRESCALER_8):
 					{
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_SET_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 						break;
 					}
 					case(PRESCALER_64):
 					{
-						REG_SET_BIT(TCCR2_R, CS20_B);
-						REG_SET_BIT(TCCR2_R, CS21_B);
-						REG_CLR_BIT(TCCR2_R, CS22_B);
+						SET_BIT(TCCR2_R, CS20_B);
+						SET_BIT(TCCR2_R, CS21_B);
+						CLEAR_BIT(TCCR2_R, CS22_B);
 						break;
 					}
 					case(PRESCALER_256):
 					{
-						REG_CLR_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_SET_BIT(TCCR2_R, CS22_B);
+						CLEAR_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
 						break;
 					}
 					case(PRESCALER_1024):
 					{
-						REG_SET_BIT(TCCR2_R, CS20_B);
-						REG_CLR_BIT(TCCR2_R, CS21_B);
-						REG_SET_BIT(TCCR2_R, CS22_B);
+						SET_BIT(TCCR2_R, CS20_B);
+						CLEAR_BIT(TCCR2_R, CS21_B);
+						SET_BIT(TCCR2_R, CS22_B);
 						break;
 					}
 					default: return GPT_STATUS_ERROR_NOK;
 				}
 				while(u32_OvfCounter < u32_OvfCounts)
 				{
-					while(BIT_IS_CLR(TIFR_R, TOV2_B) == 1);
+					while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
 					u32_OvfCounter++;
-					REG_SET_BIT(TIFR_R, TOV2_B);
+					SET_BIT(TIFR_R, TOV2_B);
 				}
 			
 				if(u32_CountRemanider != 0)
 				{
 					TCNT2_R = TIMER_2_MAX_TICKS - u32_CountRemanider;
-					while(BIT_IS_CLR(TIFR_R, TOV2_B) == 1);
-					REG_SET_BIT(TIFR_R, TOV2_B);
+					while(BIT_IS_CLEAR(TIFR_R, TOV2_B) == 1);
+					SET_BIT(TIFR_R, TOV2_B);
 				}
 			
-				REG_CLR_BIT(TCCR2_R, CS20_B);
-				REG_CLR_BIT(TCCR2_R, CS21_B);
-				REG_CLR_BIT(TCCR2_R, CS22_B);
+				CLEAR_BIT(TCCR2_R, CS20_B);
+				CLEAR_BIT(TCCR2_R, CS21_B);
+				CLEAR_BIT(TCCR2_R, CS22_B);
 			
 				TCNT2_R = 0x00;
 			}
@@ -486,21 +701,21 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 					{
 						case(PRESCALER_1):
 						{
-							REG_SET_BIT(TCCR0_R, CS00_B);
-							REG_CLR_BIT(TCCR0_R, CS01_B);
-							REG_CLR_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR0_R, CS00_B);
+							CLEAR_BIT(TCCR0_R, CS01_B);
+							CLEAR_BIT(TCCR0_R, CS02_B);
 								
-							REG_SET_BIT(TIMSK_R, TOIE0_B);
+							SET_BIT(TIMSK_R, TOIE0_B);
 								
 							break;
 						}
 						case(PRESCALER_8):
 						{
-							REG_CLR_BIT(TCCR0_R, CS00_B);
-							REG_SET_BIT(TCCR0_R, CS01_B);
-							REG_CLR_BIT(TCCR0_R, CS02_B);
+							CLEAR_BIT(TCCR0_R, CS00_B);
+							SET_BIT(TCCR0_R, CS01_B);
+							CLEAR_BIT(TCCR0_R, CS02_B);
 								
-							REG_SET_BIT(TIMSK_R, TOIE0_B);
+							SET_BIT(TIMSK_R, TOIE0_B);
 								
 
 								
@@ -508,33 +723,33 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 						}
 						case(PRESCALER_64):
 						{
-							REG_SET_BIT(TCCR0_R, CS00_B);
-							REG_SET_BIT(TCCR0_R, CS01_B);
-							REG_CLR_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR0_R, CS00_B);
+							SET_BIT(TCCR0_R, CS01_B);
+							CLEAR_BIT(TCCR0_R, CS02_B);
 								
-							REG_SET_BIT(TIMSK_R, TOIE0_B);
+							SET_BIT(TIMSK_R, TOIE0_B);
 								
 								
 							break;
 						}
 						case(PRESCALER_256):
 						{
-							REG_CLR_BIT(TCCR0_R, CS00_B);
-							REG_CLR_BIT(TCCR0_R, CS01_B);
-							REG_SET_BIT(TCCR0_R, CS02_B);
+							CLEAR_BIT(TCCR0_R, CS00_B);
+							CLEAR_BIT(TCCR0_R, CS01_B);
+							SET_BIT(TCCR0_R, CS02_B);
 								
-							REG_SET_BIT(TIMSK_R, TOIE0_B);
+							SET_BIT(TIMSK_R, TOIE0_B);
 						
 								
 							break;
 						}
 						case(PRESCALER_1024):
 						{
-							REG_SET_BIT(TCCR0_R, CS00_B);
-							REG_CLR_BIT(TCCR0_R, CS01_B);
-							REG_SET_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR0_R, CS00_B);
+							CLEAR_BIT(TCCR0_R, CS01_B);
+							SET_BIT(TCCR0_R, CS02_B);
 								
-							REG_SET_BIT(TIMSK_R, TOIE0_B);
+							SET_BIT(TIMSK_R, TOIE0_B);
 								
 								
 							break;
@@ -557,43 +772,43 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 					{
 						case(PRESCALER_1):
 						{
-							REG_SET_BIT(TCCR0_R, CS00_B);
-							REG_CLR_BIT(TCCR0_R, CS01_B);
-							REG_CLR_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR0_R, CS00_B);
+							CLEAR_BIT(TCCR0_R, CS01_B);
+							CLEAR_BIT(TCCR0_R, CS02_B);
 							break;
 						}
 						case(PRESCALER_8):
 						{
-							REG_CLR_BIT(TCCR0_R, CS00_B);
-							REG_SET_BIT(TCCR0_R, CS01_B);
-							REG_CLR_BIT(TCCR0_R, CS02_B);
+							CLEAR_BIT(TCCR0_R, CS00_B);
+							SET_BIT(TCCR0_R, CS01_B);
+							CLEAR_BIT(TCCR0_R, CS02_B);
 							break;
 						}
 						case(PRESCALER_64):
 						{
-							REG_SET_BIT(TCCR0_R, CS00_B);
-							REG_SET_BIT(TCCR0_R, CS01_B);
-							REG_CLR_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR0_R, CS00_B);
+							SET_BIT(TCCR0_R, CS01_B);
+							CLEAR_BIT(TCCR0_R, CS02_B);
 							break;
 						}
 						case(PRESCALER_256):
 						{
-							REG_CLR_BIT(TCCR0_R, CS00_B);
-							REG_CLR_BIT(TCCR0_R, CS01_B);
-							REG_SET_BIT(TCCR0_R, CS02_B);
+							CLEAR_BIT(TCCR0_R, CS00_B);
+							CLEAR_BIT(TCCR0_R, CS01_B);
+							SET_BIT(TCCR0_R, CS02_B);
 							break;
 						}
 						case(PRESCALER_1024):
 						{
-							REG_SET_BIT(TCCR0_R, CS00_B);
-							REG_CLR_BIT(TCCR0_R, CS01_B);
-							REG_SET_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR0_R, CS00_B);
+							CLEAR_BIT(TCCR0_R, CS01_B);
+							SET_BIT(TCCR0_R, CS02_B);
 							break;
 						}
 						default: return GPT_STATUS_ERROR_NOK;
 					}
 						
-					REG_SET_BIT(TIMSK_R, TOIE0_B);
+					SET_BIT(TIMSK_R, TOIE0_B);
 							
 				
 				}
@@ -603,7 +818,147 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 				}
 					
 				break;
-			}case(TIMER_2):
+			}
+	/******************************************************************************/
+	case(TIMER_1):
+	{
+		T1ovfCallback = FunToBeCalledInISR;
+		if((u32_Ticks <= TIMER_1_MAX_TICKS) && (u32_Ticks != 0))
+		{
+			/* set ticks */
+			TCNT1_R = TIMER_1_MAX_TICKS - u32_Ticks;
+			
+			/* set to prescaler */
+			switch(strGpt_Channels[ChannelId].u8_Prescaler)
+			{
+				case(PRESCALER_1):
+				{
+					
+					SET_BIT(TCCR1B_R, CS10_B);
+					CLEAR_BIT(TCCR1B_R, CS11_B);
+					CLEAR_BIT(TCCR1B_R, CS12_B);
+					
+					SET_BIT(TIMSK_R, TOIE1_B);
+					
+					break;
+				}
+				case(PRESCALER_8):
+				{
+					CLEAR_BIT(TCCR1B_R, CS10_B);
+					SET_BIT(TCCR1B_R, CS11_B);
+					CLEAR_BIT(TCCR1B_R, CS12_B);
+					
+					SET_BIT(TIMSK_R, TOIE1_B);
+					
+
+					
+					break;
+				}
+				case(PRESCALER_64):
+				{
+					SET_BIT(TCCR1B_R, CS10_B);
+					SET_BIT(TCCR1B_R, CS11_B);
+					CLEAR_BIT(TCCR1B_R, CS12_B);
+					
+					SET_BIT(TIMSK_R, TOIE1_B);
+					
+					
+					break;
+				}
+				case(PRESCALER_256):
+				{
+					CLEAR_BIT(TCCR1B_R, CS10_B);
+					CLEAR_BIT(TCCR1B_R, CS11_B);
+					SET_BIT(TCCR1B_R, CS12_B);
+					
+					SET_BIT(TIMSK_R, TOIE1_B);
+					
+					
+					break;
+				}
+				case(PRESCALER_1024):
+				{
+					SET_BIT(TCCR1B_R, CS10_B);
+					CLEAR_BIT(TCCR1B_R, CS11_B);
+					SET_BIT(TCCR1B_R, CS12_B);
+					
+					SET_BIT(TIMSK_R,TOIE1_B);
+					
+					
+					break;
+				}
+				default: return GPT_STATUS_ERROR_NOK;
+			}
+		}
+		else if((u32_Ticks > TIMER_1_MAX_TICKS) && (u32_Ticks != 0))
+		{
+			
+			float32_t f32_TempValue = (float32_t)u32_Ticks/TIMER_1_MAX_TICKS;
+			gu32_T1_OvfCounts = f32_TempValue;
+			f32_TempValue -= gu32_T1_OvfCounts;
+			uint32_t u32_CountRemanider = f32_TempValue * TIMER_1_MAX_TICKS;
+			
+			TCNT1_R = u32_CountRemanider;
+			
+			/* set to prescaler */
+			switch(strGpt_Channels[ChannelId].u8_Prescaler)
+			{
+				case(PRESCALER_1):
+				{
+					SET_BIT(TCCR1B_R, CS10_B);
+					CLEAR_BIT(TCCR1B_R, CS11_B);
+					CLEAR_BIT(TCCR1B_R, CS12_B);
+					break;
+				}
+				case(PRESCALER_8):
+				{
+					CLEAR_BIT(TCCR1B_R, CS10_B);
+					SET_BIT(TCCR1B_R, CS11_B);
+					CLEAR_BIT(TCCR1B_R, CS12_B);
+					break;
+				}
+				case(PRESCALER_64):
+				{
+					SET_BIT(TCCR1B_R, CS10_B);
+					SET_BIT(TCCR1B_R, CS11_B);
+					CLEAR_BIT(TCCR1B_R, CS12_B);
+					break;
+				}
+				case(PRESCALER_256):
+				{
+					CLEAR_BIT(TCCR1B_R, CS10_B);
+					CLEAR_BIT(TCCR1B_R, CS11_B);
+					SET_BIT(TCCR1B_R, CS12_B);
+					break;
+				}
+				case(PRESCALER_1024):
+				{
+					SET_BIT(TCCR1B_R, CS10_B);
+					CLEAR_BIT(TCCR1B_R, CS11_B);
+					SET_BIT(TCCR1B_R, CS12_B);
+					break;
+				}
+				default: return GPT_STATUS_ERROR_NOK;
+			}
+			
+			SET_BIT(TIMSK_R, TOIE1_B);
+			
+			
+		}
+		else
+		{
+			return GPT_STATUS_ERROR_NOK;
+		}
+		
+		break;
+	}
+	
+	
+	
+	/*******************************************************************************/		
+			
+			
+			case(TIMER_2):
 			{
 				T2ovfCallback = FunToBeCalledInISR;
 				if((u32_Ticks <= TIMER_2_MAX_TICKS) && (u32_Ticks != 0))
@@ -616,21 +971,21 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 						{
 							case(PRESCALER_1):
 							{
-								REG_SET_BIT(TCCR2_R, CS20_B);
-								REG_CLR_BIT(TCCR2_R, CS21_B);
-								REG_CLR_BIT(TCCR2_R, CS22_B);
+								SET_BIT(TCCR2_R, CS20_B);
+								CLEAR_BIT(TCCR2_R, CS21_B);
+								CLEAR_BIT(TCCR2_R, CS22_B);
 							
-								REG_SET_BIT(TIMSK_R, TOIE2_B);
+								SET_BIT(TIMSK_R, TOIE2_B);
 							
 								break;
 							}
 							case(PRESCALER_8):
 							{
-								REG_CLR_BIT(TCCR2_R, CS20_B);
-								REG_SET_BIT(TCCR2_R, CS21_B);
-								REG_CLR_BIT(TCCR2_R, CS22_B);
+								CLEAR_BIT(TCCR2_R, CS20_B);
+								SET_BIT(TCCR2_R, CS21_B);
+								CLEAR_BIT(TCCR2_R, CS22_B);
 							
-								REG_SET_BIT(TIMSK_R, TOIE2_B);
+								SET_BIT(TIMSK_R, TOIE2_B);
 							
 
 							
@@ -638,33 +993,33 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 							}
 							case(PRESCALER_64):
 							{
-								REG_SET_BIT(TCCR2_R, CS20_B);
-								REG_SET_BIT(TCCR2_R, CS21_B);
-								REG_CLR_BIT(TCCR2_R, CS22_B);
+								SET_BIT(TCCR2_R, CS20_B);
+								SET_BIT(TCCR2_R, CS21_B);
+								CLEAR_BIT(TCCR2_R, CS22_B);
 							
-								REG_SET_BIT(TIMSK_R, TOIE2_B);
+								SET_BIT(TIMSK_R, TOIE2_B);
 							
 							
 								break;
 							}
 							case(PRESCALER_256):
 							{
-								REG_CLR_BIT(TCCR2_R, CS20_B);
-								REG_CLR_BIT(TCCR2_R, CS21_B);
-								REG_SET_BIT(TCCR2_R, CS22_B);
+								CLEAR_BIT(TCCR2_R, CS20_B);
+								CLEAR_BIT(TCCR2_R, CS21_B);
+								SET_BIT(TCCR2_R, CS22_B);
 							
-								REG_SET_BIT(TIMSK_R, TOIE2_B);
+								SET_BIT(TIMSK_R, TOIE2_B);
 							
 							
 								break;
 							}
 							case(PRESCALER_1024):
 							{
-								REG_SET_BIT(TCCR2_R, CS20_B);
-								REG_CLR_BIT(TCCR2_R, CS21_B);
-								REG_SET_BIT(TCCR2_R, CS22_B);
+								SET_BIT(TCCR2_R, CS20_B);
+								CLEAR_BIT(TCCR2_R, CS21_B);
+								SET_BIT(TCCR2_R, CS22_B);
 							
-								REG_SET_BIT(TIMSK_R, TOIE2_B);
+								SET_BIT(TIMSK_R, TOIE2_B);
 							
 							
 								break;
@@ -687,43 +1042,43 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 						{
 							case(PRESCALER_1):
 							{
-								REG_SET_BIT(TCCR2_R, CS20_B);
-								REG_CLR_BIT(TCCR2_R, CS21_B);
-								REG_CLR_BIT(TCCR2_R, CS22_B);
+								SET_BIT(TCCR2_R, CS20_B);
+								CLEAR_BIT(TCCR2_R, CS21_B);
+								CLEAR_BIT(TCCR2_R, CS22_B);
 								break;
 							}
 							case(PRESCALER_8):
 							{
-								REG_CLR_BIT(TCCR2_R, CS20_B);
-								REG_SET_BIT(TCCR2_R, CS21_B);
-								REG_CLR_BIT(TCCR2_R, CS22_B);
+								CLEAR_BIT(TCCR2_R, CS20_B);
+								SET_BIT(TCCR2_R, CS21_B);
+								CLEAR_BIT(TCCR2_R, CS22_B);
 								break;
 							}
 							case(PRESCALER_64):
 							{
-								REG_SET_BIT(TCCR2_R, CS20_B);
-								REG_SET_BIT(TCCR2_R, CS21_B);
-								REG_CLR_BIT(TCCR2_R, CS22_B);
+								SET_BIT(TCCR2_R, CS20_B);
+								SET_BIT(TCCR2_R, CS21_B);
+								CLEAR_BIT(TCCR2_R, CS22_B);
 								break;
 							}
 							case(PRESCALER_256):
 							{
-								REG_CLR_BIT(TCCR2_R, CS20_B);
-								REG_CLR_BIT(TCCR2_R, CS21_B);
-								REG_SET_BIT(TCCR2_R, CS22_B);
+								CLEAR_BIT(TCCR2_R, CS20_B);
+								CLEAR_BIT(TCCR2_R, CS21_B);
+								SET_BIT(TCCR2_R, CS22_B);
 								break;
 							}
 							case(PRESCALER_1024):
 							{
-								REG_SET_BIT(TCCR2_R, CS20_B);
-								REG_CLR_BIT(TCCR2_R, CS21_B);
-								REG_SET_BIT(TCCR2_R, CS22_B);
+								SET_BIT(TCCR2_R, CS20_B);
+								CLEAR_BIT(TCCR2_R, CS21_B);
+								SET_BIT(TCCR2_R, CS22_B);
 								break;
 							}
 							default: return GPT_STATUS_ERROR_NOK;
 						}
 					
-						REG_SET_BIT(TIMSK_R, TOIE2_B);
+						SET_BIT(TIMSK_R, TOIE2_B);
 					
 					
 					}
@@ -760,22 +1115,40 @@ enuGpt_Status_t GptStop(uint8_t ChannelId)
 	{
 		case(TIMER_0):
 		{
-			REG_CLR_BIT(TCCR0_R, CS00_B);
-			REG_CLR_BIT(TCCR0_R, CS01_B);
-			REG_CLR_BIT(TCCR0_R, CS02_B);
+			CLEAR_BIT(TCCR0_R, CS00_B);
+			CLEAR_BIT(TCCR0_R, CS01_B);
+			CLEAR_BIT(TCCR0_R, CS02_B);
 			TCNT0_R = 0x00;
-			REG_CLR_BIT(TIMSK_R, TOIE0_B);
+			CLEAR_BIT(TIMSK_R, TOIE0_B);
 			
 			Gpt_Status = GPT_STATUS_NOT_RUNNING;
 			
 			break;
-		}case(TIMER_2):
+		}
+/*************************************************************************/
+case(TIMER_1):
+{
+	
+	CLEAR_BIT(TCCR1B_R, CS10_B);
+	CLEAR_BIT(TCCR1B_R, CS11_B);
+	CLEAR_BIT(TCCR1B_R, CS12_B);
+	TCNT1_R = 0x0000;
+	CLEAR_BIT(TIMSK_R, TOIE1_B);
+	
+	Gpt_Status = GPT_STATUS_NOT_RUNNING;
+	
+	break;
+}
+/*************************************************************************/		
+		
+		
+		case(TIMER_2):
 		{
-			REG_CLR_BIT(TCCR2_R, CS20_B);
-			REG_CLR_BIT(TCCR2_R, CS21_B);
-			REG_CLR_BIT(TCCR2_R, CS22_B);
+			CLEAR_BIT(TCCR2_R, CS20_B);
+			CLEAR_BIT(TCCR2_R, CS21_B);
+			CLEAR_BIT(TCCR2_R, CS22_B);
 			TCNT2_R = 0x00;
-			REG_CLR_BIT(TIMSK_R, TOIE2_B);
+			CLEAR_BIT(TIMSK_R, TOIE2_B);
 			
 			Gpt_Status = GPT_STATUS_NOT_RUNNING;
 			
@@ -793,13 +1166,14 @@ enuGpt_Status_t GptStop(uint8_t ChannelId)
 * Parameters (in): pointer to function to be called from ISR
 * Parameters (out): None
 * Return value: None
-* Description: sets the function to be called by overflow timer ISR
+* Description: sets the function to be called by overflow timer  ISR
 ******************************************************************************************/
 void setOvfCallback(pfGpt_CallBack_t FunToBeCalledInISR)
 {
 	T0ovfCallback = FunToBeCalledInISR;
 	
 }
+
 
 /*****************************************************************************************
 * Parameters (in): None
@@ -820,12 +1194,30 @@ ISR(TIMER0_OVF)
 		gu32_T0_OvfCounts--;
 	}
 }
-
 /*****************************************************************************************
 * Parameters (in): None
 * Parameters (out):None
 * Return value: None
-* Description: interrupt service routine for timer 0 overflow
+* Description: interrupt service routine for timer 1 overflow
+******************************************************************************************/
+ISR(TIMER1_OVF)
+{
+	if(gu32_T1_OvfCounts == 0)
+	{
+		Gpt_Status = GPT_STATUS_NOT_RUNNING;
+		GptStop(TIMER_1);
+		T1ovfCallback();
+	}
+	else
+	{
+		gu32_T1_OvfCounts--;
+	}
+}
+/*****************************************************************************************
+* Parameters (in): None
+* Parameters (out):None
+* Return value: None
+* Description: interrupt service routine for timer 2 overflow
 ******************************************************************************************/
 ISR(TIMER2_OVF)
 {
@@ -840,3 +1232,4 @@ ISR(TIMER2_OVF)
 		gu32_T2_OvfCounts--;
 	}
 }
+
