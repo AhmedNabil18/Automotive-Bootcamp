@@ -10,6 +10,8 @@
 ----------------------------------------------*/
 #include "Gpt.h"
 #include "../../Microcontroller/Atmega32 Registers/Gpt_Regs.h"
+
+#define GPT_CHANNELS			3
 /*- GLOBAL STATIC VARIABLES
 -------------------------------*/
 static volatile uint32_t gu32_T0_OvfCounts = 0;
@@ -18,7 +20,7 @@ static volatile uint32_t gu32_T2_OvfCounts = 0;
 static pfGpt_CallBack_t T0ovfCallback;
 static pfGpt_CallBack_t T2ovfCallback;
 
-enuGpt_Status_t Gpt_Status = GPT_STATUS_ERROR_OK;
+enuGpt_Status_t Gpt_Status[GPT_CHANNELS] = {GPT_STATUS_ERROR_OK};
 enuGpt_initStatus_t Gpt_Init = GPT_NOT_INITIALIZED;
 
 /*- LOCAL FUNCTIONS IMPLEMENTATION
@@ -467,282 +469,287 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 ******************************************************************************************/
 enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_CallBack_t FunToBeCalledInISR)
 {
-	if(Gpt_Status != GPT_STATUS_ALREADY_RUNNING)
-	{		
-		Gpt_Status = GPT_STATUS_ALREADY_RUNNING;
-		//setOvfCallback(FunToBeCalledInISR);
-		switch(strGpt_Channels[ChannelId].u8_TimerNumber)
+// 	if(Gpt_Status[ChannelId] != GPT_STATUS_ALREADY_RUNNING)
+// 	{		
+// 	Gpt_Status[ChannelId] = GPT_STATUS_ALREADY_RUNNING;
+	//setOvfCallback(FunToBeCalledInISR);
+	switch(strGpt_Channels[ChannelId].u8_TimerNumber)
+	{
+		case(TIMER_0):
 		{
-			case(TIMER_0):
+			if(Gpt_Status[TIMER_0] == GPT_STATUS_ALREADY_RUNNING)
 			{
-				T0ovfCallback = FunToBeCalledInISR;
-				if((u32_Ticks <= TIMER_0_MAX_TICKS) && (u32_Ticks != 0))
-				{
-					/* set ticks */
-					TCNT0_R = TIMER_0_MAX_TICKS - u32_Ticks;
+				return GPT_STATUS_ALREADY_RUNNING;
+			}
+			Gpt_Status[TIMER_0] = GPT_STATUS_ALREADY_RUNNING;
+			T0ovfCallback = FunToBeCalledInISR;
+			if((u32_Ticks <= TIMER_0_MAX_TICKS) && (u32_Ticks != 0))
+			{
+				/* set ticks */
+				TCNT0_R = TIMER_0_MAX_TICKS - u32_Ticks;
 						
-					/* set to prescaler */
+				/* set to prescaler */
+				switch(strGpt_Channels[ChannelId].u8_Prescaler)
+				{
+					case(PRESCALER_1):
+					{
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
+								
+						SET_BIT(TIMSK_R, TOIE0_B);
+								
+						break;
+					}
+					case(PRESCALER_8):
+					{
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
+								
+						SET_BIT(TIMSK_R, TOIE0_B);
+								
+
+								
+						break;
+					}
+					case(PRESCALER_64):
+					{
+						SET_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
+								
+						SET_BIT(TIMSK_R, TOIE0_B);
+								
+								
+						break;
+					}
+					case(PRESCALER_256):
+					{
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);
+								
+						SET_BIT(TIMSK_R, TOIE0_B);
+						
+								
+						break;
+					}
+					case(PRESCALER_1024):
+					{
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);
+								
+						SET_BIT(TIMSK_R, TOIE0_B);
+								
+								
+						break;
+					}
+					default: return GPT_STATUS_ERROR_NOK;
+				}
+			}
+			else if((u32_Ticks > TIMER_0_MAX_TICKS) && (u32_Ticks != 0))
+			{
+						
+				float32_t f32_TempValue = (float32_t)u32_Ticks/TIMER_0_MAX_TICKS;
+				gu32_T0_OvfCounts = f32_TempValue;
+				f32_TempValue -= gu32_T0_OvfCounts;
+				uint32_t u32_CountRemanider = f32_TempValue * TIMER_0_MAX_TICKS;
+						
+				TCNT0_R = u32_CountRemanider;
+						
+				/* set to prescaler */
+				switch(strGpt_Channels[ChannelId].u8_Prescaler)
+				{
+					case(PRESCALER_1):
+					{
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
+						break;
+					}
+					case(PRESCALER_8):
+					{
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
+						break;
+					}
+					case(PRESCALER_64):
+					{
+						SET_BIT(TCCR0_R, CS00_B);
+						SET_BIT(TCCR0_R, CS01_B);
+						CLEAR_BIT(TCCR0_R, CS02_B);
+						break;
+					}
+					case(PRESCALER_256):
+					{
+						CLEAR_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);
+						break;
+					}
+					case(PRESCALER_1024):
+					{
+						SET_BIT(TCCR0_R, CS00_B);
+						CLEAR_BIT(TCCR0_R, CS01_B);
+						SET_BIT(TCCR0_R, CS02_B);
+						break;
+					}
+					default: return GPT_STATUS_ERROR_NOK;
+				}
+						
+				SET_BIT(TIMSK_R, TOIE0_B);
+							
+				
+			}
+			else
+			{
+				return GPT_STATUS_ERROR_NOK;
+			}
+					
+			break;
+		}case(TIMER_2):
+		{
+			if(Gpt_Status[TIMER_2] == GPT_STATUS_ALREADY_RUNNING)
+			{
+				return GPT_STATUS_ALREADY_RUNNING;
+			}
+			Gpt_Status[TIMER_2] = GPT_STATUS_ALREADY_RUNNING;
+			T2ovfCallback = FunToBeCalledInISR;
+			if((u32_Ticks <= TIMER_2_MAX_TICKS) && (u32_Ticks != 0))
+			{
+				/* set ticks */
+				TCNT2_R = TIMER_2_MAX_TICKS - u32_Ticks;
+					
+				/* set to prescaler */
 					switch(strGpt_Channels[ChannelId].u8_Prescaler)
 					{
 						case(PRESCALER_1):
 						{
-							SET_BIT(TCCR0_R, CS00_B);
-							CLEAR_BIT(TCCR0_R, CS01_B);
-							CLEAR_BIT(TCCR0_R, CS02_B);
-								
-							SET_BIT(TIMSK_R, TOIE0_B);
-								
+							SET_BIT(TCCR2_R, CS20_B);
+							CLEAR_BIT(TCCR2_R, CS21_B);
+							CLEAR_BIT(TCCR2_R, CS22_B);
+							
+							SET_BIT(TIMSK_R, TOIE2_B);
+							
 							break;
 						}
 						case(PRESCALER_8):
 						{
-							CLEAR_BIT(TCCR0_R, CS00_B);
-							SET_BIT(TCCR0_R, CS01_B);
-							CLEAR_BIT(TCCR0_R, CS02_B);
-								
-							SET_BIT(TIMSK_R, TOIE0_B);
-								
+							CLEAR_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
+							CLEAR_BIT(TCCR2_R, CS22_B);
+							
+							SET_BIT(TIMSK_R, TOIE2_B);
+							
 
-								
+							
 							break;
 						}
 						case(PRESCALER_64):
 						{
-							SET_BIT(TCCR0_R, CS00_B);
-							SET_BIT(TCCR0_R, CS01_B);
-							CLEAR_BIT(TCCR0_R, CS02_B);
-								
-							SET_BIT(TIMSK_R, TOIE0_B);
-								
-								
+							SET_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
+							CLEAR_BIT(TCCR2_R, CS22_B);
+							
+							SET_BIT(TIMSK_R, TOIE2_B);
+							
+							
 							break;
 						}
 						case(PRESCALER_256):
 						{
-							CLEAR_BIT(TCCR0_R, CS00_B);
-							CLEAR_BIT(TCCR0_R, CS01_B);
-							SET_BIT(TCCR0_R, CS02_B);
-								
-							SET_BIT(TIMSK_R, TOIE0_B);
-						
-								
+							CLEAR_BIT(TCCR2_R, CS20_B);
+							CLEAR_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
+							
+							SET_BIT(TIMSK_R, TOIE2_B);
+							
+							
 							break;
 						}
 						case(PRESCALER_1024):
 						{
-							SET_BIT(TCCR0_R, CS00_B);
-							CLEAR_BIT(TCCR0_R, CS01_B);
-							SET_BIT(TCCR0_R, CS02_B);
-								
-							SET_BIT(TIMSK_R, TOIE0_B);
-								
-								
+							SET_BIT(TCCR2_R, CS20_B);
+							CLEAR_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
+							
+							SET_BIT(TIMSK_R, TOIE2_B);
+							
+							
 							break;
 						}
 						default: return GPT_STATUS_ERROR_NOK;
 					}
 				}
-				else if((u32_Ticks > TIMER_0_MAX_TICKS) && (u32_Ticks != 0))
+				else if((u32_Ticks > TIMER_2_MAX_TICKS) && (u32_Ticks != 0))
 				{
-						
-					float32_t f32_TempValue = (float32_t)u32_Ticks/TIMER_0_MAX_TICKS;
-					gu32_T0_OvfCounts = f32_TempValue;
-					f32_TempValue -= gu32_T0_OvfCounts;
-					uint32_t u32_CountRemanider = f32_TempValue * TIMER_0_MAX_TICKS;
-						
-					TCNT0_R = u32_CountRemanider;
-						
+					
+					float32_t f32_TempValue = (float32_t)u32_Ticks/TIMER_2_MAX_TICKS;
+					gu32_T2_OvfCounts = f32_TempValue;
+					f32_TempValue -= gu32_T2_OvfCounts;
+					uint32_t u32_CountRemanider = f32_TempValue * TIMER_2_MAX_TICKS;
+					
+					TCNT2_R = u32_CountRemanider;
+					
 					/* set to prescaler */
 					switch(strGpt_Channels[ChannelId].u8_Prescaler)
 					{
 						case(PRESCALER_1):
 						{
-							SET_BIT(TCCR0_R, CS00_B);
-							CLEAR_BIT(TCCR0_R, CS01_B);
-							CLEAR_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR2_R, CS20_B);
+							CLEAR_BIT(TCCR2_R, CS21_B);
+							CLEAR_BIT(TCCR2_R, CS22_B);
 							break;
 						}
 						case(PRESCALER_8):
 						{
-							CLEAR_BIT(TCCR0_R, CS00_B);
-							SET_BIT(TCCR0_R, CS01_B);
-							CLEAR_BIT(TCCR0_R, CS02_B);
+							CLEAR_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
+							CLEAR_BIT(TCCR2_R, CS22_B);
 							break;
 						}
 						case(PRESCALER_64):
 						{
-							SET_BIT(TCCR0_R, CS00_B);
-							SET_BIT(TCCR0_R, CS01_B);
-							CLEAR_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR2_R, CS20_B);
+							SET_BIT(TCCR2_R, CS21_B);
+							CLEAR_BIT(TCCR2_R, CS22_B);
 							break;
 						}
 						case(PRESCALER_256):
 						{
-							CLEAR_BIT(TCCR0_R, CS00_B);
-							CLEAR_BIT(TCCR0_R, CS01_B);
-							SET_BIT(TCCR0_R, CS02_B);
+							CLEAR_BIT(TCCR2_R, CS20_B);
+							CLEAR_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
 							break;
 						}
 						case(PRESCALER_1024):
 						{
-							SET_BIT(TCCR0_R, CS00_B);
-							CLEAR_BIT(TCCR0_R, CS01_B);
-							SET_BIT(TCCR0_R, CS02_B);
+							SET_BIT(TCCR2_R, CS20_B);
+							CLEAR_BIT(TCCR2_R, CS21_B);
+							SET_BIT(TCCR2_R, CS22_B);
 							break;
 						}
 						default: return GPT_STATUS_ERROR_NOK;
 					}
-						
-					SET_BIT(TIMSK_R, TOIE0_B);
-							
-				
+					
+					SET_BIT(TIMSK_R, TOIE2_B);
+					
+					
 				}
 				else
 				{
 					return GPT_STATUS_ERROR_NOK;
 				}
-					
+				
 				break;
-			}case(TIMER_2):
-			{
-				T2ovfCallback = FunToBeCalledInISR;
-				if((u32_Ticks <= TIMER_2_MAX_TICKS) && (u32_Ticks != 0))
-				{
-					/* set ticks */
-					TCNT2_R = TIMER_2_MAX_TICKS - u32_Ticks;
-					
-					/* set to prescaler */
-						switch(strGpt_Channels[ChannelId].u8_Prescaler)
-						{
-							case(PRESCALER_1):
-							{
-								SET_BIT(TCCR2_R, CS20_B);
-								CLEAR_BIT(TCCR2_R, CS21_B);
-								CLEAR_BIT(TCCR2_R, CS22_B);
-							
-								SET_BIT(TIMSK_R, TOIE2_B);
-							
-								break;
-							}
-							case(PRESCALER_8):
-							{
-								CLEAR_BIT(TCCR2_R, CS20_B);
-								SET_BIT(TCCR2_R, CS21_B);
-								CLEAR_BIT(TCCR2_R, CS22_B);
-							
-								SET_BIT(TIMSK_R, TOIE2_B);
-							
-
-							
-								break;
-							}
-							case(PRESCALER_64):
-							{
-								SET_BIT(TCCR2_R, CS20_B);
-								SET_BIT(TCCR2_R, CS21_B);
-								CLEAR_BIT(TCCR2_R, CS22_B);
-							
-								SET_BIT(TIMSK_R, TOIE2_B);
-							
-							
-								break;
-							}
-							case(PRESCALER_256):
-							{
-								CLEAR_BIT(TCCR2_R, CS20_B);
-								CLEAR_BIT(TCCR2_R, CS21_B);
-								SET_BIT(TCCR2_R, CS22_B);
-							
-								SET_BIT(TIMSK_R, TOIE2_B);
-							
-							
-								break;
-							}
-							case(PRESCALER_1024):
-							{
-								SET_BIT(TCCR2_R, CS20_B);
-								CLEAR_BIT(TCCR2_R, CS21_B);
-								SET_BIT(TCCR2_R, CS22_B);
-							
-								SET_BIT(TIMSK_R, TOIE2_B);
-							
-							
-								break;
-							}
-							default: return GPT_STATUS_ERROR_NOK;
-						}
-					}
-					else if((u32_Ticks > TIMER_2_MAX_TICKS) && (u32_Ticks != 0))
-					{
-					
-						float32_t f32_TempValue = (float32_t)u32_Ticks/TIMER_2_MAX_TICKS;
-						gu32_T2_OvfCounts = f32_TempValue;
-						f32_TempValue -= gu32_T2_OvfCounts;
-						uint32_t u32_CountRemanider = f32_TempValue * TIMER_2_MAX_TICKS;
-					
-						TCNT2_R = u32_CountRemanider;
-					
-						/* set to prescaler */
-						switch(strGpt_Channels[ChannelId].u8_Prescaler)
-						{
-							case(PRESCALER_1):
-							{
-								SET_BIT(TCCR2_R, CS20_B);
-								CLEAR_BIT(TCCR2_R, CS21_B);
-								CLEAR_BIT(TCCR2_R, CS22_B);
-								break;
-							}
-							case(PRESCALER_8):
-							{
-								CLEAR_BIT(TCCR2_R, CS20_B);
-								SET_BIT(TCCR2_R, CS21_B);
-								CLEAR_BIT(TCCR2_R, CS22_B);
-								break;
-							}
-							case(PRESCALER_64):
-							{
-								SET_BIT(TCCR2_R, CS20_B);
-								SET_BIT(TCCR2_R, CS21_B);
-								CLEAR_BIT(TCCR2_R, CS22_B);
-								break;
-							}
-							case(PRESCALER_256):
-							{
-								CLEAR_BIT(TCCR2_R, CS20_B);
-								CLEAR_BIT(TCCR2_R, CS21_B);
-								SET_BIT(TCCR2_R, CS22_B);
-								break;
-							}
-							case(PRESCALER_1024):
-							{
-								SET_BIT(TCCR2_R, CS20_B);
-								CLEAR_BIT(TCCR2_R, CS21_B);
-								SET_BIT(TCCR2_R, CS22_B);
-								break;
-							}
-							default: return GPT_STATUS_ERROR_NOK;
-						}
-					
-						SET_BIT(TIMSK_R, TOIE2_B);
-					
-					
-					}
-					else
-					{
-						return GPT_STATUS_ERROR_NOK;
-					}
+			}
+			default: return GPT_STATUS_ERROR_NOK;
 				
-					break;
-				}
-				default: return GPT_STATUS_ERROR_NOK;
-				
-		}
-		return GPT_STATUS_ERROR_OK;
 	}
-	else
-	{
-		return GPT_STATUS_ALREADY_RUNNING;	
-	}
+	return GPT_STATUS_ERROR_OK;
 	return GPT_STATUS_ERROR_OK;
 }
 
@@ -766,7 +773,7 @@ enuGpt_Status_t GptStop(uint8_t ChannelId)
 			TCNT0_R = 0x00;
 			CLEAR_BIT(TIMSK_R, TOIE0_B);
 			
-			Gpt_Status = GPT_STATUS_NOT_RUNNING;
+			Gpt_Status[TIMER_0] = GPT_STATUS_NOT_RUNNING;
 			
 			break;
 		}case(TIMER_2):
@@ -777,7 +784,7 @@ enuGpt_Status_t GptStop(uint8_t ChannelId)
 			TCNT2_R = 0x00;
 			CLEAR_BIT(TIMSK_R, TOIE2_B);
 			
-			Gpt_Status = GPT_STATUS_NOT_RUNNING;
+			Gpt_Status[TIMER_2] = GPT_STATUS_NOT_RUNNING;
 			
 			break;
 		}
@@ -811,7 +818,7 @@ ISR(TIMER0_OVF)
 {
 	if(gu32_T0_OvfCounts == 0)
 	{
-		 Gpt_Status = GPT_STATUS_NOT_RUNNING;
+		 Gpt_Status[TIMER_0] = GPT_STATUS_NOT_RUNNING;
 		 GptStop(TIMER_0);
 		 T0ovfCallback();
 	}
@@ -831,7 +838,7 @@ ISR(TIMER2_OVF)
 {
 	if(gu32_T2_OvfCounts == 0)
 	{
-		Gpt_Status = GPT_STATUS_NOT_RUNNING;
+		Gpt_Status[TIMER_2] = GPT_STATUS_NOT_RUNNING;
 		GptStop(TIMER_2);
 		T2ovfCallback();
 	}

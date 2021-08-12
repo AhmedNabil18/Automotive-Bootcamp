@@ -19,6 +19,18 @@
 #define Initial_Value		0x00U
 /*- LOCAL FUNCTIONS IMPLEMENTATION
 ------------------------*/ 
+static uint32_t power(uint8_t base, uint8_t power_val)
+{
+	uint8_t i;
+	uint32_t result=1;
+	if(power_val == 0) return 1;
+	if(base == 0) return 0;
+	for (i=0;i<power_val;i++)
+	{
+		result *= base;
+	}
+	return result;
+}
 
 uint16_t String_3ByteHexAddress_ToDecimal(uint8_t* u8_tempAddress)
 {
@@ -272,7 +284,7 @@ void stringConcatenate(uint8_t* destination, uint8_t* source)
 
 uint8_t Max_String_Num(uint8_t* string1, uint8_t* string2)
 {
-    uint8_t u8_retValue = stringCompare(string1,string2);
+    uint8_t u8_retValue = stringCmp(string1,string2);
 
     switch(u8_retValue)
     {
