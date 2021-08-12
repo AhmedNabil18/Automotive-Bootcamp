@@ -469,10 +469,7 @@ enuGpt_Status_t GptStart_Sync(uint8_t ChannelId, uint32_t u32_Ticks)
 ******************************************************************************************/
 enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_CallBack_t FunToBeCalledInISR)
 {
-// 	if(Gpt_Status[ChannelId] != GPT_STATUS_ALREADY_RUNNING)
-// 	{		
-// 	Gpt_Status[ChannelId] = GPT_STATUS_ALREADY_RUNNING;
-	//setOvfCallback(FunToBeCalledInISR);
+
 	switch(strGpt_Channels[ChannelId].u8_TimerNumber)
 	{
 		case(TIMER_0):
