@@ -8,6 +8,19 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Robot.h"
+
+
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+/*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/
+
+/*
+ * MACROs to determine the state of the Robot
+ */
+#define ROBOT_STOPPED				0U
+#define ROBOT_RUNNING				1U
+
+
+
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
 
@@ -17,11 +30,6 @@ u8_RobotState_t	gau8_RobotState = ROBOT_STOPPED;
 uint8_t gu8_RobotModuleStatus = ROBOT_STATUS_UNINIT;
 
 
-/*
- * MACROs to determine the state of the Robot
- */
-#define ROBOT_STOPPED				0U
-#define ROBOT_RUNNING				1U
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*--*-*-*- FUNCTIONS IMPLEMENTATION -*-*-*-*-*-*/

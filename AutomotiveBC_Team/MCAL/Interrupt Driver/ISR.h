@@ -10,9 +10,9 @@
 #ifndef ISR_H_
 #define ISR_H_
 
-#include "ISR_Regs.h"
+#include "../../Microcontroller/Atmega32 Registers/ISR_Regs.h"
 #include "../../Microcontroller/Std_Types.h"
-#include "../../Microcontroller/Common_Macros.h"
+#include "../../Libraries/Common_Macros.h"
 
 /*- PRIMITIVE TYPES ----------------------------------------*/
 typedef void (*pfINT0_CallBack_t)(void);

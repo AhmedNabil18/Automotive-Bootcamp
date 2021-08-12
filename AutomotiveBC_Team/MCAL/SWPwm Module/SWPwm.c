@@ -154,34 +154,6 @@ enuSWPwm_Status_t SWPwm_Start(u8SWPwm_Channel_t u8_ChannelID, uint32_t u32_Freq,
 	float32_t f32_systemPeriodTime = 0.0;
 	uint16_t  u16_prescalerValue = strGpt_Channels[SWPWM_CHANNEL_0_TIMER].u8_Prescaler;
 	
-// 	/* Get the Prescaler Value of the used Timer Channel */
-// 	switch(Timers_Configurations[SWPwm_Channels[u8_ChannelID].u8_GptChannelID].enuClock_Src)
-// 	{
-// 		case GPT_CLK_SRC_PRSCLR_1:
-// 			u16_prescalerValue = 1;
-// 			break;
-// 		case GPT_CLK_SRC_PRSCLR_8:
-// 			u16_prescalerValue = 8;
-// 			break;
-// 		case GPT_CLK_SRC_PRSCLR_64:
-// 			u16_prescalerValue = 64;
-// 			break;
-// 		case GPT_CLK_SRC_PRSCLR_256:
-// 			u16_prescalerValue = 256;
-// 			break;
-// 		case GPT_CLK_SRC_PRSCLR_1024:
-// 			u16_prescalerValue = 1024;
-// 			break;
-// 		case GPT_CLK_SRC_PRSCLR_EXT_FALL:
-// 			u16_prescalerValue = 1;
-// 			break;
-// 		case GPT_CLK_SRC_PRSCLR_EXT_RISE:
-// 			u16_prescalerValue = 1;
-// 			break;
-// 		default:
-// 			return SWPWM_STATUS_ERROR_NOK;
-// 	}
-	
 	f32_systemPeriodTime = (float32_t)u16_prescalerValue/SYS_CLOCK_FREQUENCY;				/* The Controllers Periodic Time in seconds based on the System Clock Frequency */
 	gu8_currentPwmChannel = u8_ChannelID;
 	gstr_ChannelsData[u8_ChannelID].u32_ONTicks = f32_waveONTime/f32_systemPeriodTime;		/* The HIGH Level Time in Ticks */

@@ -13,7 +13,7 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "../Robot Module/Robot.h"
-#include "../../ECUAL/Lcd Module/Lcd.h"
+#include "../../../ECUAL/Lcd Module/Lcd.h"
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/

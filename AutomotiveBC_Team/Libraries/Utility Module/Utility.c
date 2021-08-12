@@ -16,7 +16,7 @@
 #define D		68
 #define E		69
 #define F		70
-
+#define Initial_Value		0x00U
 /*- LOCAL FUNCTIONS IMPLEMENTATION
 ------------------------*/ 
 

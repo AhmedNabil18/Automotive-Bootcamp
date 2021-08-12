@@ -6,7 +6,7 @@
  */ 
 
 
-#include "APPL/App Component/App.h"
+#include "App Component/App.h"
 
 int main(void)
 {
