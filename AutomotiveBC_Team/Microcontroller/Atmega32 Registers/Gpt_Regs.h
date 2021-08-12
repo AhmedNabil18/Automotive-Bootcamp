@@ -8,7 +8,7 @@
 
 #ifndef GPT_REGS_H_
 #define GPT_REGS_H_
-#include "Std_Types.h"
+#include "..\Std_Types.h"
 /* Timers registers and bits */
 
 #define TIMSK_R		(*(volatile uint8_t * const)0x0059)
@@ -91,7 +91,7 @@
 
 /* Timer 2 */
 
-#define TCCR2_R		(*(volatile uint8 * const)0x0045)
+#define TCCR2_R		(*(volatile uint8_t * const)0x0045)
 
 #define CS20_B		0
 #define CS21_B		1
@@ -102,7 +102,7 @@
 #define WGM20_B 	6
 #define FOC2_B		7
 
-#define TCNT2_R		(*(volatile uint8 * const)0x0044)
-#define OCR2_R		(*(volatile uint8 * const)0x0043)
+#define TCNT2_R		(*(volatile uint8_t * const)0x0044)
+#define OCR2_R		(*(volatile uint8_t * const)0x0043)
 
 #endif /* GPT_REGS_H_ */
