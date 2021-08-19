@@ -2,7 +2,7 @@
 #define _TEST_CASES_H_
 
 #include <stdio.h>
-#include "../S_Algo_Task.h"
+#include "S_Algo_Task.h"
 #include "Test_Cases_Cfg.h"
 
 #define TC_PASSED       1

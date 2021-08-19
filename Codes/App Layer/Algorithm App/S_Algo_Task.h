@@ -15,7 +15,7 @@
  **---- Includes ----**
  **------------------**/
 #include <stdlib.h>
-#include "../../Lib/Platform_Types.h"
+#include "Platform_Types.h"
 
 
 #define ARRAY_UNSORTED      0
