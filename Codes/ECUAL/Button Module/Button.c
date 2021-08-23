@@ -11,7 +11,7 @@
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
-static u8_ButtonState_t gu8_ButtonsState[BUTTONS_USED_NUM] = {BUTTON_STATE_RELEASED};
+/*static u8_ButtonState_t gu8_ButtonsState[BUTTONS_USED_NUM] = {BUTTON_STATE_RELEASED};*/
 static enuBttn_Status_t genu_BttnModuleState = BTTN_STATUS_NOT_INIT;
 extern uint8_t gau8_buttonsUsed[BUTTONS_USED_NUM];
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
@@ -55,7 +55,7 @@ enuBttn_Status_t Button_init(void)
 	enuDio_Status_t Dio_State = Dio_init(strDio_pins);
 	if((DIO_STATUS_ERROR_OK != Dio_State) && (DIO_STATUS_ALREADY_INIT != Dio_State))
 		return BTTN_STATUS_ERROR_NOK;
-		
+	
 	/* Change the state of the Button module to Initialized */
 	genu_BttnModuleState = BTTN_STATUS_INIT;
 	return BTTN_STATUS_ERROR_OK;
@@ -71,7 +71,7 @@ enuBttn_Status_t Button_init(void)
 * Return value: enuBttn_Status_t - return the status of the function ERROR_OK or NOT_OK
 * Description: Function to get the state of the button (Pressed or Released).
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-enuBttn_Status_t Button_getState(uint8_t u8_bttnID, u8_ButtonState_t * pu8_state)
+enuBttn_Status_t Button_getState(u8_ButtonChannel_t u8_bttnID, u8_ButtonState_t * pu8_state)
 {
 /**************************************************************************************/
 /*								Start of Error Checking								  */
@@ -95,7 +95,14 @@ enuBttn_Status_t Button_getState(uint8_t u8_bttnID, u8_ButtonState_t * pu8_state
 /**************************************************************************************/
 /*								Function Implementation								  */
 /**************************************************************************************/
+	uint8_t u8_valueTemp=0;
+	/* Read the Pin and put its state in the global variable */
+	if(Dio_readPin(gau8_buttonsUsed[u8_bttnID], &u8_valueTemp) != DIO_STATUS_ERROR_OK)
+		return BTTN_STATUS_ERROR_NOK;
+	*pu8_state = u8_valueTemp;
+	#if 0
 	*pu8_state = gu8_ButtonsState[u8_bttnID];
+	#endif
 	return BTTN_STATUS_ERROR_OK;
 }
 
@@ -109,7 +116,7 @@ enuBttn_Status_t Button_getState(uint8_t u8_bttnID, u8_ButtonState_t * pu8_state
 * Return value: enuBttn_Status_t - return the status of the function ERROR_OK or NOT_OK
 * Description: Function to update the state of the button (Pressed or Released) by reading the Pin.
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-enuBttn_Status_t Button_updateState(uint8_t u8_bttnID)
+enuBttn_Status_t Button_updateState(u8_ButtonChannel_t u8_bttnID)
 {
 /**************************************************************************************/
 /*								Start of Error Checking								  */
@@ -126,10 +133,12 @@ enuBttn_Status_t Button_updateState(uint8_t u8_bttnID)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	uint8_t u8_valueTemp=0;
-	uint32_t u32_loopIndex = 0;
 	/* Read the Pin and put its state in the global variable */
 	if(Dio_readPin(gau8_buttonsUsed[u8_bttnID], &u8_valueTemp) != DIO_STATUS_ERROR_OK)
 		return BTTN_STATUS_ERROR_NOK;
+
+#if 0
+	uint32_t u32_loopIndex = 0;
 	if(u8_valueTemp == PIN_HIGH)
 	{
 		/* De bouncing Delay */
@@ -149,5 +158,6 @@ enuBttn_Status_t Button_updateState(uint8_t u8_bttnID)
 		if(u8_valueTemp == PIN_LOW)
 			gu8_ButtonsState[u8_bttnID] = BUTTON_STATE_RELEASED;
 	}
+#endif
 	return BTTN_STATUS_ERROR_OK;
 }

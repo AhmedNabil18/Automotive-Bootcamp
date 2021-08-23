@@ -1,279 +1,688 @@
-/*
- * Lcd.c
- *
- * Created: 7/24/2021 10:37:51 AM
- *  Author: Ahmed Nabil
- */ 
+/*****************************************************************************
+* Module: Lcd Module
+* File Name: Lcd.c
+* Description: Source file for Lcd Module
+* Author: Mohamed Magdy
+* Date: 24-July-2021
+******************************************************************************/
 
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*-*-*-*-*- INCLUDES *-*-*-*-*-*/
+/*- INCLUDES
+----------------------------------------------*/
 #include "Lcd.h"
-#include "../../MCAL/StringManipulation.h"
-#include "../../MCAL/Delay Module/Delay.h"
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
-static enuLcd_Status_t genu_LcdModuleState = LCD_STATUS_NOT_INIT;
-// static uint8_t gu8_currentColumn = 0;
-// static uint8_t gu8_currentRow = 0;
 
-static void Lcd_WriteData(uint8_t u8_Data)
-{
-	(u8_Data & 0x1)!=0 ? Dio_writePin(LCD_D4,PIN_HIGH) : Dio_writePin(LCD_D4,PIN_LOW);
-	(u8_Data & 0x2)!=0 ? Dio_writePin(LCD_D5,PIN_HIGH) : Dio_writePin(LCD_D5,PIN_LOW);
-	(u8_Data & 0x4)!=0 ? Dio_writePin(LCD_D6,PIN_HIGH) : Dio_writePin(LCD_D6,PIN_LOW);
-	(u8_Data & 0x8)!=0 ? Dio_writePin(LCD_D7,PIN_HIGH) : Dio_writePin(LCD_D7,PIN_LOW);
-}
-static void Lcd_EnableToggle(void)
-{
-	ENABLE;
-	Delay_ms(1);
-	DISABLE;
-}
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*--*-*-*- FUNCTIONS IMPLEMENTATION -*-*-*-*-*-*/
+/*- GLOBAL EXTERN VARIABLES
+-------------------------------*/
+enuLcd_Status_t Lcd_Status = LCD_STATUS_ERROR_OK;
+enuLcd_initStatus_t Lcd_Init = LCD_NOT_INITIALIZED;
 
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-* Service Name: Lcd_init
-* Sync/Async: Synchronous
-* Reentrancy: Non reentrant
-* Parameters (in): None
-* Parameters (inout): None
-* Parameters (out): None
-* Return value: enuLcd_Status_t - return the status of the function ERROR_OK or NOT_OK
-* Description: Function to Initialize the Lcd module.
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+/* states */
+#if (AsyncMode == TRUE)
+uint8_t LCD_NEXT_STATE = IDLE;
+uint8_t LCD_SEND_STRING_STATE = IDLE;
+uint8_t LCD_CLEAR_DISPLAY_STATE = IDLE;
+uint8_t LCD_SET_CURSOR_STATE = IDLE;
+uint8_t LCD_SEND_COMMAND_STATE = IDLE;
+uint8_t LCD_SENDING_INT_STATE = IDLE;
+
+uint8_t LCD_SENDING_CHAR_FOR_INT_STATE = IDLE;
+uint8_t LCD_SENDING_CHAR_FOR_STRING_STATE = IDLE;
+
+uint8_t Lcd_Init_DoneFlag = FALSE;
+uint8_t Lcd_PoweringUp_Flag = FALSE;
+
+uint8_t gau8_currentString[Lcd_Columns];
+uint8_t gau8_nextString[Lcd_Columns];
+uint8_t gau8_currentInteger[6];
+
+uint8_t gu8_currentX = Initial_Value;
+uint8_t gu8_currentY = Initial_Value;
+
+#define LCD_INIT_4BITS_COMMAND_1_ID			1
+#define LCD_INIT_4BITS_COMMAND_2_ID			2
+#define LCD_LINES_2_FONT_5x8_COMMAND_ID		3
+#define LCD_DISPLAY_OFF_COMMAND_ID			4
+#define LCD_CLEAR_COMMAND_ID				5
+#define LCD_ENTRY_MODE_COMMAND_ID			6
+#define LCD_DISPLAY_ON_COMMAND_ID			7
+
+uint8_t gu8_currentlyRunningCommand = LCD_INIT_4BITS_COMMAND_1_ID;
+
+/* one time strings option, to be redesigned later in cfg.c */
+uint8_t gau8_oneTimeString_1[11] = "Distance:";
+
+uint8_t gu8_oneTimeString_1_Flag = FALSE;
+
+
+#endif
+
+/*- LOCAL FUNCTIONS IMPLEMENTATION
+------------------------*/
+
+/************************************************************************************************************************/
+/*********************************************** BLOCKING APIS **********************************************************/
+/************************************************************************************************************************/
+
+#if (AsyncMode == FALSE)
 enuLcd_Status_t Lcd_init(void)
 {
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
-	/* Check if the Lcd module is already initialized */
-	if (genu_LcdModuleState == LCD_STATUS_INIT)
-	{
-		return LCD_STATUS_INIT;
-	}else{/*Nothing to here*/}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
-	/* Initialize the DIO Module and check if any error returned */
-	enuDio_Status_t Dio_State = Dio_init(strDio_pins);
-	if((DIO_STATUS_ERROR_OK != Dio_State) && (DIO_STATUS_ALREADY_INIT != Dio_State))
-		return LCD_STATUS_ERROR_NOK;
+	if(Lcd_Init == LCD_INITIALIZED) return LCD_STATUS_ERROR_NOK;
+	
+	Dio_init(strDio_pins);
 	
 	Delay_ms(20);
-	CMD;
-	DISABLE;
+	//Activate 4 bit mode
+	Lcd_sendCommand(INIT_4BITS_COMMAND_1);
+	Lcd_sendCommand(INIT_4BITS_COMMAND_2);
 	
-	Lcd_sendCommand(0x33);
-	Lcd_sendCommand(0x32);
-	Lcd_sendCommand(0x28);
-	//Lcd_sendCommand(0x08);
-	Lcd_sendCommand(0x0C);
-	Lcd_sendCommand(0x06);
-	Lcd_sendCommand(0x01);
-	//Delay_ms(2);
-	/* Change the state of the Lcd module to Initialized */
-	genu_LcdModuleState = LCD_STATUS_INIT;
+	//Function Set (2 lines & 5x8 font)
+	Lcd_sendCommand(LINES_2_FONT_5x8);
+	
+	//Display OFF
+	Lcd_sendCommand(DISPLAY_OFF);
+	
+	//Clear Display
+	Lcd_sendCommand(CLEAR);
+	
+	//Entry Mode Set
+	Lcd_sendCommand(ENTRY_MODE);
+	
+	//Display ON
+	Lcd_sendCommand(DISPLAY_ON);
+	
+	Lcd_Init = LCD_INITIALIZED;
 	return LCD_STATUS_ERROR_OK;
 }
 
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-* Service Name: Lcd_sendCommand
-* Sync/Async: Synchronous
-* Reentrancy: Non reentrant
-* Parameters (in): u8_command - Command to be sent to the LCD.
-* Parameters (inout): None
-* Parameters (out): None
-* Return value: enuLcd_Status_t - return the status of the function ERROR_OK or NOT_OK
-* Description: Function to Send a Command to the LCD.
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+enuLcd_Status_t Lcd_sendData_4bitMode(uint8_t u8_data)
+{
+	Lcd_sendHigherNibble(u8_data);							//send higher nibble
+	Lcd_toggleEnable();		//toggle enable
+	
+	Lcd_sendLowerNibble(u8_data);							//send lower nibble
+	Lcd_toggleEnable();		//toggle enable
+	
+	Delay_ms(2);
+	
+	return LCD_STATUS_ERROR_OK;
+}
+
+enuLcd_Status_t Lcd_cursorPosition(uint8_t u8_xAxis, uint8_t u8_yAxis)
+{
+	uint8_t au8_positions[4] = {0, 64, Lcd_Columns, Lcd_Columns+64};
+	
+	Lcd_sendCommand(0x80+au8_positions[u8_xAxis-1]+(u8_yAxis-1));
+	
+	return LCD_STATUS_ERROR_OK;
+}
+
+
+enuLcd_Status_t Lcd_clearDisplay(void)
+{
+	Lcd_sendCommand(CLEAR);
+	return LCD_STATUS_ERROR_OK;
+}
+
+
+enuLcd_Status_t Lcd_sendString(uint8_t* au8_string)
+{
+	uint8_t u8_loopCounter = Initial_Value;
+	for (u8_loopCounter=Initial_Value;au8_string[u8_loopCounter]!='\0';u8_loopCounter++)
+	{
+		Lcd_sendCharacter(au8_string[u8_loopCounter]);
+	}
+	
+	return LCD_STATUS_ERROR_OK;
+}
+
 enuLcd_Status_t Lcd_sendCommand(uint8_t u8_command)
 {
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
 	
-	CMD;
-	Lcd_WriteData((u8_command & 0xF0)>>4); 
-	Lcd_EnableToggle();
-	Delay_ms(1);
-	Lcd_WriteData(u8_command & 0x0F);
-	Lcd_EnableToggle();
-	Delay_ms(2);
+	Dio_writePin(RS_DIO_ID, STD_LOW);			//activate command mode
+	
+	Lcd_sendData_4bitMode(u8_command);
+	
 	return LCD_STATUS_ERROR_OK;
 }
-
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-* Service Name: Lcd_setCursor
-* Sync/Async: Synchronous
-* Reentrancy: Non reentrant
-* Parameters (in): u8_Row - Row Index.
-*				   u8_Column - Column Index.
-* Parameters (inout): None
-* Parameters (out): None
-* Return value: enuLcd_Status_t - return the status of the function ERROR_OK or NOT_OK
-* Description: Function to print single character at the current position of the cursor in the LCD.
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-enuLcd_Status_t Lcd_setCursor(uint8_t u8_Row, uint8_t u8_Column)
+enuLcd_Status_t Lcd_sendVariableInt(uint16_t u16_number, uint8_t u8_base)
 {
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
-	/* Check if the Lcd module is not initialized */
-	if (genu_LcdModuleState != LCD_STATUS_INIT)
-	{
-		return LCD_STATUS_NOT_INIT;
-	}else{/*Nothing to here*/}
-	/* Check if the Row index is out of range */
-	if(u8_Row > LCD_ROWS_NUM)
-	{
-		return LCD_STATUS_ERROR_ROW_INVALID;
-	}else{/*Nothing to here*/}
-	/* Check if the Column index is out of range */
-	if(u8_Column > LCD_COLUMNS_NUM)
-	{
-		return LCD_STATUS_ERROR_COL_INVALID;
-	}else{/*Nothing to here*/}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
-	    uint8_t u8_Command=0x00;
-		u8_Command = LCD_ROW_1_INDEX + u8_Row*0x40 + u8_Column;
-	    Lcd_sendCommand(u8_Command);
-		
+	uint8_t pu8_String[6];
+	integerToString(u16_number, pu8_String, u8_base);
+	
+	Lcd_sendString(pu8_String);
+	
 	return LCD_STATUS_ERROR_OK;
 }
+#endif
 
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-* Service Name: Lcd_printChar
-* Sync/Async: Synchronous
-* Reentrancy: Non reentrant
-* Parameters (in): u8_data - Character to be printed on the LCD.
-* Parameters (inout): None
-* Parameters (out): None
-* Return value: enuLcd_Status_t - return the status of the function ERROR_OK or NOT_OK
-* Description: Function to print single character at the current position of the cursor in the LCD.
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-enuLcd_Status_t Lcd_printChar(uint8_t u8_data)
+
+
+
+/************************************************************************************************************************/
+/*********************************************** NON BLOCKING APIS ******************************************************/
+/************************************************************************************************************************/
+
+#if (AsyncMode == TRUE)
+enuLcd_Status_t Lcd_init(void)
 {
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
-	/* Check if the Lcd module is not initialized */
-	if (genu_LcdModuleState != LCD_STATUS_INIT)
+	if(Lcd_Init == LCD_INITIALIZED || LCD_SEND_COMMAND_STATE == RUNNING || Lcd_PoweringUp_Flag == RUNNING) return LCD_STATUS_ERROR_NOK;
+	
+	if(Lcd_Init_DoneFlag == TRUE)
 	{
-		return LCD_STATUS_NOT_INIT;
-	}else{/*Nothing to here*/}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
-	DATA;             // => RS = 1
-	Lcd_WriteData((u8_data & 0xF0)>>4);             //Data transfer
-	Lcd_EnableToggle();
-	Delay_ms(1);
-	Lcd_WriteData(u8_data & 0x0F);
-	Lcd_EnableToggle();
-	Delay_ms(2);
-	return LCD_STATUS_ERROR_OK;
-}
-
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
-* Service Name: Lcd_printString
-* Sync/Async: Synchronous
-* Reentrancy: Non reentrant
-* Parameters (in): pu8_data - Pointer to string to be printed on the LCD.
-* Parameters (inout): None
-* Parameters (out): None
-* Return value: enuLcd_Status_t - return the status of the function ERROR_OK or NOT_OK
-* Description: Function to print string at the current position of the cursor in the LCD.
-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-enuLcd_Status_t Lcd_printString(uint8_t *pu8_data)
-{
-/**************************************************************************************/
-/*								Start of Error Checking								  */
-/**************************************************************************************/
-	/* Check if the Lcd module is not initialized */
-	if (genu_LcdModuleState != LCD_STATUS_INIT)
-	{
-		return LCD_STATUS_NOT_INIT;
-	}else{/*Nothing to here*/}
-/**************************************************************************************/
-/*								End of Error Checking								  */
-/**************************************************************************************/
-
-/**************************************************************************************/
-/*								Function Implementation								  */
-/**************************************************************************************/
-	while (*pu8_data != '\0')
-	{
-		Lcd_printChar(*pu8_data++);
+		Lcd_Init = LCD_INITIALIZED;
+		return LCD_STATUS_ERROR_OK;
 	}
+	
+	if(Lcd_PoweringUp_Flag == FALSE)
+	{
+		Dio_init(strDio_pins);
+		GptInit();
+		GptStart_aSync(TIMER_USED_ID, DelayTicks_PowerUp, LcdPoweringUpFinished);
+		Lcd_PoweringUp_Flag = RUNNING;
+		return LCD_STATUS_ERROR_OK;
+	}
+	
+	
+	switch(gu8_currentlyRunningCommand)
+	{
+		case(LCD_INIT_4BITS_COMMAND_1_ID):
+		{
+			//Activate 4 bit mode
+			Lcd_sendCommand(INIT_4BITS_COMMAND_1);
+			break;
+		}
+		case(LCD_INIT_4BITS_COMMAND_2_ID):
+		{
+			//Activate 4 bit mode
+			Lcd_sendCommand(INIT_4BITS_COMMAND_2);
+			break;
+		}
+		case(LCD_LINES_2_FONT_5x8_COMMAND_ID):
+		{
+			//Function Set (2 lines & 5x8 font)
+			Lcd_sendCommand(LINES_2_FONT_5x8);
+			break;
+		}
+		case(LCD_DISPLAY_OFF_COMMAND_ID):
+		{
+			//Display OFF
+			Lcd_sendCommand(DISPLAY_OFF);
+			break;
+		}
+		case(LCD_CLEAR_COMMAND_ID):
+		{
+			//Clear Display
+			Lcd_sendCommand(CLEAR);
+			break;
+		}
+		case(LCD_ENTRY_MODE_COMMAND_ID):
+		{
+			//Entry Mode Set
+			Lcd_sendCommand(ENTRY_MODE);
+			break;
+		}
+		case(LCD_DISPLAY_ON_COMMAND_ID):
+		{
+			//Display ON
+			Lcd_sendCommand(DISPLAY_ON);
+			break;
+		}
+		default: return LCD_STATUS_ERROR_NOK;
+	}
+
+	return LCD_STATUS_ERROR_OK;
+}
+
+enuLcd_Status_t Lcd_cursorPosition(uint8_t u8_xAxis, uint8_t u8_yAxis)
+{
+	if(Lcd_Init != LCD_INITIALIZED) return LCD_STATUS_ERROR_NOK;
+	
+	if(LCD_CLEAR_DISPLAY_STATE == RUNNING || LCD_SEND_STRING_STATE == RUNNING
+	|| LCD_SENDING_INT_STATE == RUNNING)
+	{
+		if(LCD_NEXT_STATE == IDLE)
+		{
+			gu8_currentX = u8_xAxis;
+			gu8_currentY = u8_yAxis;
+			LCD_NEXT_STATE = SET_CURSOR_PENDING;
+		}
+		return LCD_STATUS_ERROR_NOK;
+	}
+	else if(LCD_NEXT_STATE == SET_CURSOR_PENDING)
+	{
+		if(gu8_currentX == u8_xAxis && gu8_currentY == u8_yAxis)
+		{
+			LCD_SET_CURSOR_STATE = RUNNING;
+			LCD_NEXT_STATE = IDLE;
+		}
+		else
+		{
+			return LCD_STATUS_ERROR_NOK;
+		}
+
+	}
+	else if(LCD_NEXT_STATE == SEND_STRING_PENDING || LCD_NEXT_STATE == CLEAR_DISPLAY_PENDING
+	|| LCD_NEXT_STATE == SEND_INT_PENDING)
+	{
+		return LCD_STATUS_ERROR_NOK;
+	}
+	else if(LCD_NEXT_STATE == IDLE)
+	{
+		gu8_currentX = u8_xAxis;
+		gu8_currentY = u8_yAxis;
+		LCD_SET_CURSOR_STATE = RUNNING;
+	}
+	else
+	{
+		/* RUN */
+	}
+	
+	uint8_t au8_positions[4] = {0, 64, Lcd_Columns, Lcd_Columns+64};
+	Lcd_sendCommand(0x80+au8_positions[u8_xAxis-1]+(u8_yAxis-1));
+	
+	return LCD_STATUS_ERROR_OK;
+}
+
+enuLcd_Status_t Lcd_clearDisplay(void)
+{
+	if(Lcd_Init != LCD_INITIALIZED) return LCD_STATUS_ERROR_NOK;
+	
+	if(LCD_SEND_STRING_STATE == RUNNING || LCD_SET_CURSOR_STATE == RUNNING
+	|| LCD_SENDING_INT_STATE == RUNNING)
+	{
+		if(LCD_NEXT_STATE == IDLE)
+		{
+			LCD_NEXT_STATE = CLEAR_DISPLAY_PENDING;
+		}
+		return LCD_STATUS_ERROR_NOK;
+	}
+	else if(LCD_NEXT_STATE == CLEAR_DISPLAY_PENDING)
+	{
+		LCD_CLEAR_DISPLAY_STATE = RUNNING;
+		LCD_NEXT_STATE = IDLE;
+	}
+	else if(LCD_NEXT_STATE == SEND_STRING_PENDING || LCD_NEXT_STATE == SET_CURSOR_PENDING
+	|| LCD_NEXT_STATE == SEND_INT_PENDING)
+	{
+		return LCD_STATUS_ERROR_NOK;
+	}
+	else if( LCD_NEXT_STATE == IDLE)
+	{
+		LCD_CLEAR_DISPLAY_STATE = RUNNING;
+	}
+	else
+	{
+		/* RUN */
+	}
+	
+	Lcd_sendCommand(CLEAR);
+	return LCD_STATUS_ERROR_OK;
+}
+
+enuLcd_Status_t Lcd_sendString(uint8_t* au8_string)
+{
+	if(Lcd_Init != LCD_INITIALIZED) return LCD_STATUS_ERROR_NOK;
+	
+	static uint8_t u8_stringIndexCounter = Initial_Value;
+	
+	if(LCD_CLEAR_DISPLAY_STATE == RUNNING || LCD_SET_CURSOR_STATE == RUNNING 
+	  || LCD_SENDING_INT_STATE == RUNNING)
+	{
+		if(LCD_NEXT_STATE == IDLE)
+		{
+			stringCopy(au8_string, gau8_nextString);
+			LCD_NEXT_STATE = SEND_STRING_PENDING;
+			
+		}
+		return LCD_STATUS_ERROR_NOK;
+	}
+	else if(LCD_NEXT_STATE == SEND_STRING_PENDING && LCD_SENDING_INT_STATE != RUNNING 
+			&& LCD_SEND_STRING_STATE != RUNNING)
+	{
+		if(stringCmp(au8_string, gau8_nextString) == TRUE)
+		{
+			stringCopy(au8_string, gau8_currentString);
+			EmptyString(gau8_nextString);
+			LCD_SEND_STRING_STATE =  RUNNING;
+			LCD_NEXT_STATE = IDLE;
+		}
+		else
+		{
+			return LCD_STATUS_ERROR_NOK;
+		}
+	}
+	else if((LCD_NEXT_STATE == SET_CURSOR_PENDING || LCD_NEXT_STATE == CLEAR_DISPLAY_PENDING || LCD_NEXT_STATE == SEND_INT_PENDING)
+			&& LCD_SEND_STRING_STATE != RUNNING)
+	{
+		return LCD_STATUS_ERROR_NOK;
+	}
+	else if(LCD_NEXT_STATE == IDLE)
+	{
+		if(LCD_SEND_STRING_STATE == RUNNING)
+		{
+			stringCopy(au8_string, gau8_nextString);
+			LCD_NEXT_STATE = SEND_STRING_PENDING;
+			return LCD_STATUS_ERROR_OK;
+		}
+		else
+		{
+			stringCopy(au8_string, gau8_currentString);
+			LCD_SEND_STRING_STATE = RUNNING;			
+		}
+	}
+	else
+	{
+		/* RUN */
+	}
+	
+	if(u8_stringIndexCounter != 0 && stringCmp(au8_string, gau8_currentString) == FALSE)
+	{
+		return LCD_STATUS_ERROR_NOK;
+	}
+	/******************** TEMP ********************/
+ 	if(gu8_oneTimeString_1_Flag == TRUE && stringCmp(au8_string, gau8_oneTimeString_1) == TRUE)
+ 	{
+ 		u8_stringIndexCounter = Initial_Value;
+ 		LCD_SEND_STRING_STATE = IDLE;
+ 		return LCD_STATUS_ERROR_NOK;
+ 	}
+	/*********************************************/
+	if(au8_string[u8_stringIndexCounter]!='\0')
+	{
+		if(LCD_SENDING_CHAR_FOR_STRING_STATE == IDLE)
+		{
+			LCD_SENDING_CHAR_FOR_STRING_STATE = RUNNING;
+			Lcd_sendCharacter(au8_string[u8_stringIndexCounter]);
+			u8_stringIndexCounter++;
+		}
+		else
+		{
+			return LCD_STATUS_ERROR_NOK;
+		}
+
+	}
+	else
+	{
+		u8_stringIndexCounter = Initial_Value;
+		LCD_SEND_STRING_STATE = IDLE;
 		
+		/*********************** TEMP *********************************/
+ 		if(gu8_oneTimeString_1_Flag == FALSE)
+ 		{
+ 			if(stringCmp(gau8_currentString, gau8_oneTimeString_1) == TRUE)
+ 			{
+ 				gu8_oneTimeString_1_Flag = TRUE;
+ 				EmptyString(gau8_currentString);
+ 			}
+ 		}
+		/**************************************************************/
+	}
+	
 	return LCD_STATUS_ERROR_OK;
 }
 
-
-enuLcd_Status_t Lcd_printLCD(uint8_t *pu8_data1, uint8_t *pu8_data2)
+enuLcd_Status_t Lcd_sendVariableInt(uint16_t u16_number, uint8_t u8_base)
 {
-	Lcd_clear();
-	if(Lcd_setCursor(0, 0) != LCD_STATUS_ERROR_OK)
+	if(Lcd_Init != LCD_INITIALIZED)
+	return LCD_STATUS_ERROR_NOK;
+	
+	uint8_t au8_string[6];
+	integerToString(u16_number, au8_string, u8_base);
+	
+	static uint8_t u8_integerIndexCounter = Initial_Value;
+	
+	if(LCD_CLEAR_DISPLAY_STATE == RUNNING || LCD_SET_CURSOR_STATE == RUNNING
+	|| LCD_SEND_STRING_STATE == RUNNING)
+	{
+		if(LCD_NEXT_STATE == IDLE)
+		{
+			LCD_NEXT_STATE = SEND_INT_PENDING;
+		}
 		return LCD_STATUS_ERROR_NOK;
-	if(Lcd_printString(pu8_data1) != LCD_STATUS_ERROR_OK)
+	}
+	else if(LCD_NEXT_STATE == SEND_INT_PENDING && LCD_SEND_STRING_STATE != RUNNING
+			 && LCD_SENDING_INT_STATE != RUNNING)
+	{
+		stringCopy(au8_string, gau8_currentInteger);
+		LCD_SENDING_INT_STATE = RUNNING;
+		LCD_NEXT_STATE = IDLE;
+	}
+	else if((LCD_NEXT_STATE == SET_CURSOR_PENDING || LCD_NEXT_STATE == CLEAR_DISPLAY_PENDING || LCD_NEXT_STATE == SEND_STRING_PENDING)
+			 && LCD_SENDING_INT_STATE != RUNNING)
+	{
 		return LCD_STATUS_ERROR_NOK;
-	if(Lcd_setCursor(1,0) != LCD_STATUS_ERROR_OK)
-		return LCD_STATUS_ERROR_NOK;
-	if(Lcd_printString(pu8_data2) != LCD_STATUS_ERROR_OK)
-		return LCD_STATUS_ERROR_NOK;
+	}
+	else if(LCD_NEXT_STATE == IDLE)
+	{
+		if(LCD_SENDING_INT_STATE == RUNNING)
+		{
+			LCD_NEXT_STATE = SEND_INT_PENDING;
+			return LCD_STATUS_ERROR_NOK;
+		}
+		else
+		{
+			stringCopy(au8_string, gau8_currentInteger);
+			LCD_SENDING_INT_STATE = RUNNING;
+		}
+
+	}
+	else
+	{
+		/* RUN */
+	}
+	
+	if(gau8_currentInteger[u8_integerIndexCounter]!='\0')
+	{
+		if(LCD_SENDING_CHAR_FOR_INT_STATE == IDLE)
+		{
+			LCD_SENDING_CHAR_FOR_INT_STATE = RUNNING;
+			Lcd_sendCharacter(gau8_currentInteger[u8_integerIndexCounter]);
+			u8_integerIndexCounter++;
+		}
+		else
+		{
+			return LCD_STATUS_ERROR_NOK;
+		}
+
+	}
+	else
+	{
+		u8_integerIndexCounter = Initial_Value;
+		LCD_SENDING_INT_STATE = IDLE;
+
+		EmptyString(gau8_currentInteger);
+	}
+	
 	return LCD_STATUS_ERROR_OK;
 }
 
-enuLcd_Status_t Lcd_clear(void)
+enuLcd_Status_t Lcd_sendData_4bitMode(uint8_t u8_data)
 {
-	Lcd_sendCommand(0x01);
+	Lcd_sendHigherNibble(u8_data);							//send higher nibble
+	Lcd_toggleEnable();		//toggle enable
+	
+	Lcd_sendLowerNibble(u8_data);							//send lower nibble
+	Lcd_toggleEnable();		//toggle enable
+	
+	/* delay after byte sent */
+	GptStart_aSync(TIMER_USED_ID, DelayTicks_Commands, LcdDelayFinished);
+	
 	return LCD_STATUS_ERROR_OK;
 }
 
-enuLcd_Status_t Lcd_shiftRight(void)
+enuLcd_Status_t Lcd_sendCommand(uint8_t u8_command)
 {
-	Lcd_sendCommand(0x1C);
+	if(LCD_SEND_COMMAND_STATE == RUNNING) return LCD_STATUS_ERROR_NOK;
+	LCD_SEND_COMMAND_STATE = RUNNING;
+	
+	Dio_writePin(RS_DIO_ID, STD_LOW);			//activate command mode
+	
+	Lcd_sendData_4bitMode(u8_command);
+	
 	return LCD_STATUS_ERROR_OK;
 }
 
-enuLcd_Status_t Lcd_shiftLeft(void)
+void LcdDelayFinished(void)
 {
-	Lcd_sendCommand(0x18);
+	if(Lcd_Init == LCD_NOT_INITIALIZED)
+	{
+		if(gu8_currentlyRunningCommand == LCD_DISPLAY_ON_COMMAND_ID)
+		{
+			/* if all commands done state module as initialized */
+			Lcd_Init_DoneFlag = TRUE;
+			LCD_SEND_COMMAND_STATE = IDLE;
+		}
+		else
+		{
+			gu8_currentlyRunningCommand++;
+			LCD_SEND_COMMAND_STATE = IDLE;
+		}
+	}
+	else
+	{
+		if(LCD_SET_CURSOR_STATE == RUNNING)
+		{
+			LCD_SET_CURSOR_STATE = IDLE;
+			LCD_SEND_COMMAND_STATE = IDLE;
+		}
+		else if(LCD_CLEAR_DISPLAY_STATE == RUNNING)
+		{
+			LCD_CLEAR_DISPLAY_STATE = IDLE;
+			LCD_SEND_COMMAND_STATE = IDLE;
+		}
+		else if(LCD_SEND_STRING_STATE == RUNNING)
+		{
+			LCD_SENDING_CHAR_FOR_STRING_STATE = IDLE;
+		}
+		else if(LCD_SENDING_INT_STATE == RUNNING)
+		{
+			LCD_SENDING_CHAR_FOR_INT_STATE = IDLE;
+		}
+	}
+
+}
+
+void LcdPoweringUpFinished(void)
+{
+	Lcd_PoweringUp_Flag = TRUE;
+}
+#endif
+
+
+
+
+
+/************************************************************************************************************************/
+/*********************************************** COMMON APIS ************************************************************/
+/************************************************************************************************************************/
+
+
+enuLcd_Status_t Lcd_toggleEnable(void)
+{
+	Dio_writePin(EN_DIO_ID, STD_HIGH);		//set enable ON
+	Delay_ms(1);
+	Dio_writePin(EN_DIO_ID, STD_LOW);		//set enable OFF
+	
 	return LCD_STATUS_ERROR_OK;
 }
-enuLcd_Status_t Lcd_printBinary(uint16_t u16_num)
+
+enuLcd_Status_t Lcd_sendCharacter(uint8_t u8_char)
 {
-	uint8_t au8_snum[17];
-	integerToString(u16_num, au8_snum, BIN);
-	Lcd_printString(au8_snum);
+	Dio_writePin(RS_DIO_ID, STD_HIGH);		//activate DATA mode
+	Lcd_sendData_4bitMode(u8_char);
 	return LCD_STATUS_ERROR_OK;
 }
-enuLcd_Status_t Lcd_printDecimal(uint16_t u16_num)
+
+
+
+enuLcd_Status_t Lcd_sendLowerNibble(uint8_t u8_data)
 {
-	uint8_t au8_snum[17];
-	integerToString(u16_num, au8_snum, DEC);
-	Lcd_printString(au8_snum);
+	if((u8_data & 0x01) != 0)
+	{
+		Dio_writePin(D4_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D4_DIO_ID, STD_LOW);
+	}
+
+	if((u8_data & 0x02) != 0)
+	{
+		Dio_writePin(D5_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D5_DIO_ID, STD_LOW);
+	}
+	
+	if((u8_data & 0x04) != 0)
+	{
+		Dio_writePin(D6_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D6_DIO_ID, STD_LOW);
+	}
+	
+	if((u8_data & 0x08) != 0)
+	{
+		Dio_writePin(D7_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D7_DIO_ID, STD_LOW);
+	}
+	
 	return LCD_STATUS_ERROR_OK;
 }
-enuLcd_Status_t Lcd_printHexa(uint16_t u16_num)
+
+enuLcd_Status_t Lcd_sendHigherNibble(uint8_t u8_data)
 {
-	uint8_t au8_snum[17];
-	integerToString(u16_num, au8_snum, HEX);
-	Lcd_printString(au8_snum);
+	if((u8_data & 0x10) != 0)
+	{
+		Dio_writePin(D4_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D4_DIO_ID, STD_LOW);
+	}
+
+	if((u8_data & 0x20) != 0)
+	{
+		Dio_writePin(D5_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D5_DIO_ID, STD_LOW);
+	}
+	
+	if((u8_data & 0x40) != 0)
+	{
+		Dio_writePin(D6_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D6_DIO_ID, STD_LOW);
+	}
+	
+	if((u8_data & 0x80) != 0)
+	{
+		Dio_writePin(D7_DIO_ID, STD_HIGH);
+	}
+	else
+	{
+		Dio_writePin(D7_DIO_ID, STD_LOW);
+	}
+	
 	return LCD_STATUS_ERROR_OK;
 }
+
+
+
+
+
+
+
+
+
+
+

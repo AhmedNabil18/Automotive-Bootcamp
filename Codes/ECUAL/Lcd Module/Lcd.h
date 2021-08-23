@@ -1,97 +1,85 @@
-/*
- * Lcd.h
- *
- * Created: 7/24/2021 10:38:01 AM
- *  Author: Ahmed Nabil
- */ 
-
+/*****************************************************************************
+* Module: Lcd Module
+* File Name: Lcd.h
+* Description: Header file for Lcd Module
+* Author: Mohamed Magdy
+* Date: 24-July-2021
+******************************************************************************/
 
 #ifndef LCD_H_
 #define LCD_H_
 
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*-*-*-*-*- INCLUDES *-*-*-*-*-*/
+/* INCLUDES */
+
+#include "../../Microcontroller/Platform_Types.h"
+#include "../../Libraries/Common_Macros.h"
+#include "../../MCAL/Dio Module/Dio.h"
 #include "Lcd_Cfg.h"
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/
-#define LCD_MODE_4_BIT				0x28U
-#define LCD_MODE_8_BIT				0x38U
+#include "../../Microcontroller/Delay Module/Delay.h"
+#include "../../Libraries/Utility Module/Utility.h"
 
-#define LCD_ROW_1_INDEX				0x80
-#define LCD_ROW_2_INDEX				0xC0
-#define CURSOR_1stEND				(CURSOR_1stSTART + LCD_COLUMNS_NUM)
-#define CURSOR_2ndEND				(CURSOR_2ndSTART + LCD_COLUMNS_NUM)
 
-#define LCD_DISPLAY_OFF		0x08
-#define LCD_CLEAR_DISP		0x01
-#define LCD_SHIFT_RIGHT		0x1C
-#define LCD_SHIFT_LEFT		0x18
+#if (AsyncMode == TRUE)
+	#include "../../MCAL/Gpt Module/Gpt.h"
+#endif
 
-#define LCD_ENTRY_MODE      (1 << 2) | (INC_DEC << 1) | (SHIFT << 0)
-#define LCD_DISPLAY_SETTING (1 << 3) | (DISPLAY_ON << 2) | (CURSOR_ON << 1) | (BLINKING_ON << 0)
 
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*-*-*-*-*-*- MACROS -*-*-*-*-*-*-*/
-#define READ			 Dio_writePin(LCD_RW,PIN_HIGH)
-#define WRITE			 Dio_writePin(LCD_RW,PIN_LOW)
-#define CMD				 Dio_writePin(LCD_RS,PIN_LOW)
-#define DATA			 Dio_writePin(LCD_RS,PIN_HIGH)
-#define ENABLE			 Dio_writePin(LCD_E,PIN_HIGH)
-#define DISABLE			 Dio_writePin(LCD_E,PIN_LOW)
+/* CONSTANTS */
+/* Commands */
+#define CLEAR						0x01
+#define HOME						0x02
+#define ENTRY_MODE					0x06
+#define DISPLAY_ON					0x0C
+#define	DISPLAY_OFF					0x08
+#define LINES_2_FONT_5x8			0x28
+#define INIT_4BITS_COMMAND_1		0x33
+#define INIT_4BITS_COMMAND_2		0x32
 
-/*******************************************************************************
- *                          Module Data Types                                  *
- *******************************************************************************/
-/*
- * Data Type for LCD return status
- */
+/* states when using async mode */
+#if (AsyncMode == TRUE)
+	#define IDLE						7
+	#define RUNNING						6
+	#define CLEAR_DISPLAY_PENDING		2
+	#define SET_CURSOR_PENDING			3
+	#define SEND_STRING_PENDING			4
+	#define SEND_INT_PENDING			5
+#endif
+/*- ENUMS --------------------------------------------------*/
 typedef enum
 {
 	LCD_STATUS_ERROR_NOK,
-	LCD_STATUS_ERROR_OK,
-	LCD_STATUS_ERROR_COL_INVALID,
-	LCD_STATUS_ERROR_ROW_INVALID,
-	LCD_STATUS_ERROR_NULL,
-	LCD_STATUS_NOT_INIT,
-	LCD_STATUS_INIT
+	LCD_STATUS_ERROR_OK
+
 }enuLcd_Status_t;
 
-/*******************************************************************************
- *                      Function Prototypes                                    *
- *******************************************************************************/
-/* Function to initialize the Lcd module */
-enuLcd_Status_t Lcd_init(void);
-
-/* Function to send command to the LCD */
+typedef enum
+{
+	LCD_INITIALIZED,
+	LCD_NOT_INITIALIZED
+}enuLcd_initStatus_t;
+/*************************/
+/*- FUNCTION DECLARATIONS ----------------------------------*/
+enuLcd_Status_t Lcd_toggleEnable(void);
+enuLcd_Status_t Lcd_sendData_4bitMode(uint8_t u8_data);
+enuLcd_Status_t Lcd_sendCharacter(uint8_t u8_char);
+enuLcd_Status_t Lcd_sendString(uint8_t* au8_string);
+enuLcd_Status_t Lcd_cursorPosition(uint8_t u8_xAxis, uint8_t u8_yAxis);
 enuLcd_Status_t Lcd_sendCommand(uint8_t u8_command);
+enuLcd_Status_t Lcd_init(void);
+enuLcd_Status_t Lcd_clearDisplay(void);
+enuLcd_Status_t Lcd_sendHigherNibble(uint8_t u8_data);
+enuLcd_Status_t Lcd_sendLowerNibble(uint8_t u8_data);
 
-/* Function to print character on the LCD */
-enuLcd_Status_t Lcd_printChar(uint8_t u8_data);
+enuLcd_Status_t Lcd_sendVariableInt(uint16_t u16_number, uint8_t u8_base); 
 
-/* Function to print string on the LCD */
-enuLcd_Status_t Lcd_printString(uint8_t *pu8_data);
+#if (AsyncMode == TRUE)
+	void LcdDelayFinished(void);
+	void LcdPoweringUpFinished(void);
+#endif
 
-/* Function to print 2 strings on the LCD 1st and 2nd rows */
-enuLcd_Status_t Lcd_printLCD(uint8_t *pu8_data1, uint8_t *pu8_data2);
 
-/* Function to set the cursor of the LCD */
-enuLcd_Status_t Lcd_setCursor(uint8_t u8_Row, uint8_t u8_Column);
+enuLcd_Status_t Lcd_init_test(void);
+enuLcd_Status_t Lcd_sendCommand_test(uint8_t u8_command);
+enuLcd_Status_t Lcd_sendData_4bitMode_test(uint8_t u8_data);
 
-/* Function to print Decimal Number */
-enuLcd_Status_t Lcd_printDecimal(uint16_t u16_num);
-
-/* Function to print Hexa Number */
-enuLcd_Status_t Lcd_printHexa(uint16_t u16_num);
-
-/* Function to print Binary Number */
-enuLcd_Status_t Lcd_printBinary(uint16_t u16_num);
-
-/* Function to clear the display */
-enuLcd_Status_t Lcd_clear(void);
-
-/* Function to shift the display left */
-enuLcd_Status_t Lcd_shiftLeft(void);
-
-/* Function to shift the display right */
-enuLcd_Status_t Lcd_shiftRight(void);
 #endif /* LCD_H_ */

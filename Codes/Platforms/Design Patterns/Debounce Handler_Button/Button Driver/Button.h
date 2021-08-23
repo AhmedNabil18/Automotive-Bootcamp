@@ -1,10 +1,10 @@
-/*
- * Button.h
- *
- * Created: 7/15/2021 6:36:15 PM
- *  Author: Ahmed Nabil
- */ 
-
+/*****************************************************************************
+* Module: Button Module
+* File Name: Button.h
+* Description: Header file for Button Module
+* Author: Mohamed Magdy
+* Date: 21-July-2021
+******************************************************************************/ 
 
 #ifndef BUTTON_H_
 #define BUTTON_H_
@@ -12,11 +12,9 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Button_Cfg.h"
-#include "../../MCAL/Dio Module/Dio.h"
-/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-/*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/
-#define BUTTON_STATE_RELEASED		0U
-#define BUTTON_STATE_PRESSED		1U
+#include "../../../MCAL/Dio Module/Dio.h"
+#include "../../../Microcontroller/Std_Types.h"
+#include "../../../Libraries/Common_Macros.h"
 
 /*******************************************************************************
  *                          Module Data Types                                  *
@@ -28,22 +26,15 @@ typedef enum
 {
 	BTTN_STATUS_ERROR_NOK,
 	BTTN_STATUS_ERROR_OK,
-	BTTN_STATUS_ERROR_ID_INVALID,
-	BTTN_STATUS_ERROR_NULL,
-	BTTN_STATUS_NOT_INIT,
-	BTTN_STATUS_INIT,
-	BTTN_ERROR_DIO_INVALID
+	BTTN_STATUS_ERROR_INVALID
 }enuBttn_Status_t;
 
-/*
- * Data Type for Button state
- */
-typedef uint8_t u8_ButtonState_t;
-
-/*
- * Data Type for Button Channel
- */
-typedef uint8_t u8_ButtonChannel_t;
+/*- STRUCTS AND UNIONS -------------------------------------*/
+typedef struct
+{
+	uint8_t u8_Button_DioId;
+	uint8_t u8_pullUpOrDown;
+}strButton_Config_t;
 
 /*******************************************************************************
  *                      Function Prototypes                                    *
@@ -51,10 +42,9 @@ typedef uint8_t u8_ButtonChannel_t;
 /* Function to initialize the button module */
 enuBttn_Status_t Button_init(void);
 
-/* Function to get the state of the button */
-enuBttn_Status_t Button_getState(u8_ButtonChannel_t u8_bttnID, u8_ButtonState_t * pu8_state);
+/* Function to get the logic state of the button */
+enuBttn_Status_t Button_getState(uint8_t u8_bttnID, uint8_t* pu8_state);
 
-/* Function to update the state of the button */
-enuBttn_Status_t Button_updateState(u8_ButtonChannel_t u8_bttnID);
-
+/* configuration variable */
+extern strButton_Config_t strButton_Config[BUTTONS_USED];
 #endif /* BUTTON_H_ */
