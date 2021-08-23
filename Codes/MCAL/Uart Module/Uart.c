@@ -8,13 +8,9 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Uart.h"
-#include "..\ATMega32_Registers.h"
+#include "Microcontroller/Atmega32 Registers/Uart_Regs.h"
 #include "Uart_Cfg.h"
 
-
-static void (*Uart_TXC_CallBackPtr)(void);
-static void (*Uart_RXC_CallBackPtr)(void);
-static void (*Uart_UDRE_CallBackPtr)(void);
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
 static uint8_t u8_Uart_Status = UART_NOT_INITIALIZED;
@@ -295,7 +291,7 @@ enuUart_Status_t Uart_EnableNotification_TXC(pfUart_CallBack_t Uart_Callback)
 	/*- Enable the Uart TXC Interrupt -*/
 	UART_UCSRB_REG |= UART_INTERRUPT_TXCIE;
 	/* Assign the Callback function to the UART's ISR Handler Caller */
-	Uart_TXC_CallBackPtr = Uart_Callback;
+	Interrupt_install(USART_TXC_IRQ, Uart_Callback);
 		
 	return UART_STATUS_ERROR_OK;
 }
@@ -336,7 +332,7 @@ enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback)
 	/*- Enable the Uart RXC Interrupt -*/
 	UART_UCSRB_REG |= UART_INTERRUPT_RXCIE;
 	/* Assign the Callback function to the UART's ISR Handler Caller */
-	Uart_RXC_CallBackPtr = Uart_Callback;
+	Interrupt_install(USART_RXC_IRQ, Uart_Callback);
 		
 	return UART_STATUS_ERROR_OK;
 }
@@ -377,8 +373,7 @@ enuUart_Status_t Uart_EnableNotification_UDRE(pfUart_CallBack_t Uart_Callback)
 	/*- Enable the Uart UDRE Interrupt -*/
 	UART_UCSRB_REG |= UART_INTERRUPT_UDRIE;
 	/* Assign the Callback function to the UART's ISR Handler Caller */
-	Uart_UDRE_CallBackPtr = Uart_Callback;
-			
+	Interrupt_install(USART_UDRE_IRQ, Uart_Callback);
 	return UART_STATUS_ERROR_OK;
 }
 
@@ -427,7 +422,3 @@ uint8_t Uart_DataRegister(void)
 	return UART_UDR_REG;
 }
 
-
-ISR(USART_TXC_IRQ){(*Uart_TXC_CallBackPtr)();}
-ISR(USART_RXC_IRQ){(*Uart_RXC_CallBackPtr)();}
-ISR(USART_UDRE_IRQ){(*Uart_UDRE_CallBackPtr)();}

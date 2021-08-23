@@ -5,56 +5,169 @@
  *  Author: Ahmed Nabil
  */ 
 #include "Ext_INT.h"
+#include "../../Microcontroller/Interrupt Handler/Interrupt_Interface.h"
 
-void Ext_INT0_init(uint8_t u8_mode)
+/*- GLOBAL STATIC VARIABLES
+-------------------------------*/
+
+//static pfExtINT_CallBack_t ExtIntCallback[EXT_INTERRUPT_PINS]={NULL_PTR};
+
+/*- Function Definitions
+-------------------------------*/
+void EnableExtINT(uint8_t ExtINT_ID, uint8_t senseControl)
 {
-	GICR_REG |= 1<<(GICR_INT0_BIT);
-	MCUCR_REG |= u8_mode<<MCUCR_ISC00;
+	switch(senseControl)
+	{
+		case(LOW_LEVEL):
+		{
+			if(ExtINT_ID == EXT_INT0)
+			{
+				CLEAR_BIT(MCUCR_R, ISC00_B);
+				CLEAR_BIT(MCUCR_R, ISC01_B);
+				SET_BIT(GICR_R, INT0_B);
+			}
+			else if (ExtINT_ID == EXT_INT1)
+			{
+				CLEAR_BIT(MCUCR_R, ISC10_B);
+				CLEAR_BIT(MCUCR_R, ISC11_B);
+				SET_BIT(GICR_R, INT1_B);
+			}
+			else
+			{
+				
+			}
+			break;
+		}
+		case(LOGIC_CHANGE):
+		{
+			if(ExtINT_ID == EXT_INT0)
+			{
+				SET_BIT(MCUCR_R, ISC00_B);
+				CLEAR_BIT(MCUCR_R, ISC01_B);
+				
+				SET_BIT(GICR_R, INT0_B);
+			}
+			else if (ExtINT_ID == EXT_INT1)
+			{
+				SET_BIT(MCUCR_R, ISC10_B);
+				CLEAR_BIT(MCUCR_R, ISC11_B);
+				SET_BIT(GICR_R, INT1_B);
+			}
+			else
+			{
+				
+			}
+			break;
+		}
+		case(FALLING_EDGE):
+		{
+			if(ExtINT_ID == EXT_INT0)
+			{
+				SET_BIT(MCUCR_R, ISC00_B);
+				CLEAR_BIT(MCUCR_R, ISC01_B);
+				SET_BIT(GICR_R, INT0_B);
+			}
+			else if (ExtINT_ID == EXT_INT1)
+			{
+				SET_BIT(MCUCR_R, ISC10_B);
+				CLEAR_BIT(MCUCR_R, ISC11_B);
+				SET_BIT(GICR_R, INT1_B);
+			}
+			else if (ExtINT_ID == EXT_INT2)
+			{
+				CLEAR_BIT(MCUCSR_R, ISC2_B);
+				SET_BIT(GICR_R, INT2_B);
+			}
+			else
+			{
+				
+			}
+			break;
+		}
+		case(RISING_EDGE):
+		{
+			if(ExtINT_ID == EXT_INT0)
+			{
+				SET_BIT(MCUCR_R, ISC00_B);
+				SET_BIT(MCUCR_R, ISC01_B);
+				SET_BIT(GICR_R, INT0_B);
+			}
+			else if (ExtINT_ID == EXT_INT1)
+			{
+				SET_BIT(MCUCR_R, ISC10_B);
+				SET_BIT(MCUCR_R, ISC11_B);
+				SET_BIT(GICR_R, INT1_B);
+			}
+			else if (ExtINT_ID == EXT_INT2)
+			{
+				SET_BIT(MCUCSR_R, ISC2_B);
+				SET_BIT(GICR_R, INT2_B);
+			}
+			else
+			{
+				
+			}
+			break;
+		}
+		default: break;
+	}
+	EnableGlobalInterrupts();
 }
 
-void Ext_INT1_init(uint8_t u8_mode)
+void DisableExtINT(uint8_t ExtINT_ID)
 {
-	GICR_REG |= 1<<(GICR_INT1_BIT);
-	MCUCR_REG |= u8_mode<<MCUCR_ISC10;
-}
-void Ext_INT2_init(uint8_t u8_mode)
-{//ToDo
-	GICR_REG |= 1<<(GICR_INT1_BIT);
-	//MCUCSR_REG |= u8_mode<<MCUCR_ISC10;
-}
-
-
-static void (*INT0_CallBackPtr)(void);
-
-void INT0_setCallBack(void (*ptrFun)(void))
-{
-	INT0_CallBackPtr=ptrFun;
-}
-ISR(INT0_IRQ)
-{
-	(*INT0_CallBackPtr)();
-}
-
-/*********************************************/
-static void (*INT1_CallBackPtr)(void);
-
-void INT1_setCallBack(void (*ptrFun)(void))
-{
-	INT1_CallBackPtr=ptrFun;
-}
-ISR(INT1_IRQ)
-{
-	(*INT1_CallBackPtr)();
+	switch(ExtINT_ID)
+	{
+		case EXT_INT0:
+		{
+			CLEAR_BIT(GICR_R, INT0_B);
+			break;
+		}
+		case EXT_INT1:
+		{
+			CLEAR_BIT(GICR_R, INT1_B);
+			break;
+		}
+		case EXT_INT2:
+		{
+			CLEAR_BIT(GICR_R, INT2_B);
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 }
 
-/*********************************************/
-static void (*INT2_CallBackPtr)(void);
-
-void INT2_setCallBack(void (*ptrFun)(void))
+/*****************************************************************************************
+* Parameters (in): pointer to function to be called from ISR
+* Parameters (out): None
+* Return value: None
+* Description: sets the function to be called by external interrupt 0 ISR
+******************************************************************************************/
+void setExtINTCallback(uint8_t ExtINT_ID, pfExtINT_CallBack_t FunToBeCalledInISR)
 {
-	INT2_CallBackPtr=ptrFun;
-}
-ISR(INT2_IRQ)
-{
-	(*INT2_CallBackPtr)();
+	switch(ExtINT_ID)
+	{
+		case EXT_INT0:
+		{
+			Interrupt_install(INT0_IRQ, FunToBeCalledInISR);
+			break;
+		}
+		case EXT_INT1:
+		{
+			Interrupt_install(INT1_IRQ, FunToBeCalledInISR);
+		    break;
+		}
+		case EXT_INT2:
+		{
+			Interrupt_install(INT2_IRQ, FunToBeCalledInISR);
+			break;
+		}
+		default:
+		{
+			break;
+		}
+	}
 }

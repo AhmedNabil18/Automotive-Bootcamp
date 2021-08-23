@@ -12,8 +12,10 @@
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
-#include "../Obstacle Avoidance Robot/Obstcl_Avd_Rbt.h"
-
+#include "AppL/Obstacle Avoidance Robot/Obstcl_Avd_Rbt.h"
+#include "AppL/Robot Steering Module/Rbt_Steering.h"
+#include "AppL/Sensing Module/Sensing.h"
+#include "AppL/Display Module/Display.h"
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/
 

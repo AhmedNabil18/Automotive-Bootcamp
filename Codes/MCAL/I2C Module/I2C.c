@@ -8,8 +8,7 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "I2C.h"
-#include "..\ATMega32_Registers.h"
-#include "../../ECUAL/Terminal Module/Terminal.h"
+#include "Microcontroller/Atmega32 Registers/I2C_Regs.h"
 
 //static void (*I2C_STC_CallBackPtr)(void);
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/

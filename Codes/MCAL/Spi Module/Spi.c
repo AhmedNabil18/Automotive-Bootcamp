@@ -8,10 +8,10 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Spi.h"
-#include "..\ATMega32_Registers.h"
+#include "Microcontroller/Atmega32 Registers/SPI_Regs.h"
+#include "Microcontroller/Atmega32 Registers/Dio_regs.h"
+#include "Libraries/Common_Macros.h"
 
-
-static void (*SPI_STC_CallBackPtr)(void);
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
 static enuSpi_Status_t genuSpi_Status = SPI_STATUS_NOT_INIT;
@@ -134,7 +134,7 @@ enuSpi_Status_t Spi_MasterSendByte(uint8_t u8_data)
 	/* Put the data in the Data Register */
 	SPI_SPDR_REG = u8_data;
 	/* Wait for the transfer to complete */
-	while(BIT_IS_CLR(SPI_SPSR_REG, SPI_SPSR_SPIF));
+	while(BIT_IS_CLEAR(SPI_SPSR_REG, SPI_SPSR_SPIF));
 	/* Flush the buffer to clear the SPIF bit */
 	u8_buffer = SPI_SPDR_REG;
 	
@@ -264,7 +264,7 @@ enuSpi_Status_t Spi_SlaveSendByte(uint8_t u8_data)
 	/* Put the data in the Data Register */
 	SPI_SPDR_REG = u8_data;
 	/* Wait for the transfer to complete */
-	while(BIT_IS_CLR(SPI_SPSR_REG, SPI_SPSR_SPIF));
+	while(BIT_IS_CLEAR(SPI_SPSR_REG, SPI_SPSR_SPIF));
 	
 	return SPI_STATUS_ERROR_OK;
 }
@@ -306,7 +306,7 @@ enuSpi_Status_t Spi_SlaveReceiveByte(uint8_t* pu8_data)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	/* Wait for the transfer to complete */
-	while(BIT_IS_CLR(SPI_SPSR_REG, SPI_SPSR_SPIF));
+	while(BIT_IS_CLEAR(SPI_SPSR_REG, SPI_SPSR_SPIF));
 	/* Read the received Data from the Data register */
 	*pu8_data = SPI_SPDR_REG;
 	return SPI_STATUS_ERROR_OK;
@@ -391,8 +391,7 @@ enuSpi_Status_t Spi_EnableNotification(pfSpi_CallBack_t Spi_Callback)
 /**************************************************************************************/
 	/*- Enable the SPI Interrupt -*/
 	SPI_SPCR_REG |= 1<<SPI_SPCR_SPIE;
-	/* Assign the Callback function to the SPI's ISR Handler Caller */
-	SPI_STC_CallBackPtr = Spi_Callback;
+	Interrupt_install(SPI_STC_IRQ, Spi_Callback);
 			
 	return SPI_STATUS_ERROR_OK;
 }
@@ -427,7 +426,7 @@ enuSpi_Status_t Spi_DisableNotification(void)
 /**************************************************************************************/
 	/*- Disable the SPIE Interrupt -*/
 	SPI_SPCR_REG &= ~(1<<SPI_SPCR_SPIE);
-				
+	Interrupt_deinstall(SPI_STC_IRQ);
 	return SPI_STATUS_ERROR_OK;
 }
 			
@@ -437,5 +436,3 @@ uint8_t Spi_DataRegister(void)
 	return SPI_SPDR_REG;
 }
 
-
-ISR(SPI_STC_IRQ){(*SPI_STC_CallBackPtr)();}

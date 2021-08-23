@@ -31,6 +31,7 @@ typedef uint8_t  Std_ReturnType;
 #define STD_ON          0x01U       /* Standard ON */
 #define STD_OFF         0x00U       /* Standard OFF */
 
+#define NULL			0U
 #define NULL_PTR		(void*)0
 
 #define E_OK            ((Std_ReturnType)0x00U)      /* Function Return OK */

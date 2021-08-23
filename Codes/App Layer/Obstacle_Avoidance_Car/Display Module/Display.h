@@ -11,7 +11,7 @@
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
-#include "../../../ECUAL/Lcd Module/Lcd.h"
+#include "ECUAL/Lcd Module/Lcd.h"
 #include "Display_LCfg.h"
 
 

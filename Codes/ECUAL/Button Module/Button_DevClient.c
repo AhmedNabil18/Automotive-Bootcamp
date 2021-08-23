@@ -7,7 +7,7 @@
 
 
 #include "Button_DevClient.h"
-#include "../../MCAL/Gpt Module/Gpt.h"
+#include "MCAL/Gpt Module/Gpt.h"
 
 void Button0_TimerCallbackFunction(void);
 void Button1_TimerCallbackFunction(void);

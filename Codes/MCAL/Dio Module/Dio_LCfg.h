@@ -61,4 +61,5 @@
 #define DIO_IN4_CHANNEL_ID					11
 #define DIO_BTN0_CHANNEL_ID					12
 #define DIO_US_TRG_CHANNEL_ID				13
+#define DIO_BTN1_CHANNEL_ID					14
 #endif /* DIO_CFG_H_ */

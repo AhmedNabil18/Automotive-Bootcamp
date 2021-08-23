@@ -12,7 +12,7 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Terminal_Cfg.h"
-#include "../../MCAL/StringManipulation.h"
+#include "Libraries/Utility Module/Utility.h"
 
 #define INPUT_VISIBLE			0U
 #define INPUT_INVISIBLE			1U

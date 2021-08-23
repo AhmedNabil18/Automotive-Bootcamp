@@ -7,10 +7,8 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Adc.h"
-#include "..\ATMega32_Registers.h"
+#include "Microcontroller/Atmega32 Registers/Adc_Regs.h"
 
-
-static void (*ADC_CallBackPtr)(void);
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
 static enuAdc_Status_t genuAdc_Status = ADC_STATUS_NOT_INIT;
@@ -195,8 +193,8 @@ enuAdc_Status_t ADC_startWithInterrupt(uint8_t u8_channelID, pfAdc_CallBack_t pf
 	ADC_ADMUX_REG |= (str_ADCchannels[u8_channelID].u8_Vref)<<ADC_ADMUX_REFS0;		//set the voltage reference
 	
 	/* Set the callback function */
-	ADC_CallBackPtr = pf_callback;
-	
+	Interrupt_install(ADC_IRQ, pf_callback);
+	EnableGlobalInterrupts();
 	/* Enable the Interrupt Option */
 	ADC_ADCSRA_REG |= 1<<ADC_ADCSRA_ADIE;
 			
@@ -259,9 +257,4 @@ enuAdc_Status_t ADC_readFromISR(uint8_t u8_channelID, uint32_t* pu32_data)
 	*pu32_data = u16_Result*f32_Resolution;
 		
 	return ADC_STATUS_ERROR_OK;
-}
-
-ISR(ADC_IRQ)
-{
-	(*ADC_CallBackPtr)();
 }

@@ -11,13 +11,12 @@
 
 /*- INCLUDES -----------------------------------------------*/
 #include "..\..\Microcontroller\Platform_Types.h"
-#include "../Interrupt Driver/ISR.h"
-#include "..\..\Microcontroller\Atmega32 Registers\Gpt_Regs.h"
 
 #include "Gpt_LCfg.h"
 //#include "../../MCAL/Interrupt Driver/ISR.h"
 
 /*- CONSTANTS ----------------------------------------------*/
+#define TIMERS_NUM			3U
 #define TIMER_0_MAX_TICKS	256
 #define TIMER_1_MAX_TICKS	65536
 #define TIMER_2_MAX_TICKS	256

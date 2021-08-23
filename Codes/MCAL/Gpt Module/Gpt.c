@@ -9,7 +9,9 @@
 /*- INCLUDES
 ----------------------------------------------*/
 #include "Gpt.h"
+#include "..\..\Microcontroller\Interrupt Handler\Interrupt_Interface.h"
 #include "../../Microcontroller/Atmega32 Registers/Gpt_Regs.h"
+#include "../../Libraries/Common_Macros.h"
 
 #define GPT_CHANNELS			3
 /* it will be used to stop the timer1 if it started and didn't stop till reach this value */
@@ -28,6 +30,15 @@ static uint32_t gu32_T1_OVF_TICKS =0;
 
 enuGpt_Status_t Gpt_Status[GPT_CHANNELS] = {GPT_STATUS_ERROR_NOK};
 enuGpt_initStatus_t Gpt_Init = GPT_NOT_INITIALIZED;
+
+void Gpt_T0Ovf_ISR(void);
+void Gpt_T1Ovf_ISR(void);
+void Gpt_T2Ovf_ISR(void);
+void Gpt_T1OvfCounter_ISR(void);
+
+
+
+
 
 /*- LOCAL FUNCTIONS IMPLEMENTATION
 ------------------------*/
@@ -742,7 +753,12 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 				return GPT_STATUS_ALREADY_RUNNING;
 			}
 			Gpt_Status[TIMER_0] = GPT_STATUS_ALREADY_RUNNING;
+			
+			Interrupt_install(TIMER0_OVF_IRQ, Gpt_T0Ovf_ISR);
+			
 			T0ovfCallback = FunToBeCalledInISR;
+			
+			EnableGlobalInterrupts();
 			if((u32_Ticks <= TIMER_0_MAX_TICKS) && (u32_Ticks != 0))
 			{
 				/* set ticks */
@@ -879,7 +895,11 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 				return GPT_STATUS_ALREADY_RUNNING;
 			}
 			Gpt_Status[TIMER_2] = GPT_STATUS_ALREADY_RUNNING;
+			
+			Interrupt_install(TIMER2_OVF_IRQ, Gpt_T2Ovf_ISR);
+			
 			T2ovfCallback = FunToBeCalledInISR;
+			
 			if((u32_Ticks <= TIMER_2_MAX_TICKS) && (u32_Ticks != 0))
 			{
 				/* set ticks */
@@ -1073,7 +1093,10 @@ enuGpt_Status_t GptStart_aSync(uint8_t ChannelId, uint32_t u32_Ticks, pfGpt_Call
 		}
 		Gpt_Status[TIMER_1] = GPT_STATUS_ALREADY_RUNNING;
 		
+		Interrupt_install(TIMER1_OVF_IRQ, Gpt_T1Ovf_ISR);
+		
 		T1ovfCallback = FunToBeCalledInISR;
+		
 		if((u32_Ticks <= TIMER_1_MAX_TICKS) && (u32_Ticks != 0))
 		{
 			/* set ticks */
@@ -1273,23 +1296,11 @@ case(TIMER_1):
 * Parameters (in): Channel Id
 * Parameters (out): Error Status
 * Return value: enuGpt_Status_t
-* Description: this function will stop the timer if the timer starts and exceeds the max numbers 
-			   of counts allowed 
-******************************************************************************************/
-#if 0
-void T1ExpireFunc(void)
-{
-	GptStop(TIMER_1);
-}
-#endif
-/*****************************************************************************************
-* Parameters (in): Channel Id
-* Parameters (out): Error Status
-* Return value: enuGpt_Status_t
 * Description: Starts a given timer
 ******************************************************************************************/
 enuGpt_Status_t Gpt_StartTimer(uint8_t ChannelId)
 {
+	EnableGlobalInterrupts();
 	switch(strGpt_Channels[ChannelId].u8_TimerNumber)
 	{
 		case(TIMER_1):
@@ -1404,25 +1415,12 @@ void Gpt_ReturnCounterVal(uint8_t ChannelId , uint32_t *u32_CounterVal)
 /* Interrupts */
 
 /*****************************************************************************************
-* Parameters (in): pointer to function to be called from ISR
-* Parameters (out): None
-* Return value: None
-* Description: sets the function to be called by overflow timer  ISR
-******************************************************************************************/
-void setOvfCallback(pfGpt_CallBack_t FunToBeCalledInISR)
-{
-	T0ovfCallback = FunToBeCalledInISR;
-	
-}
-
-
-/*****************************************************************************************
 * Parameters (in): None
 * Parameters (out):None
 * Return value: None
 * Description: interrupt service routine for timer 0 overflow
 ******************************************************************************************/
-ISR(TIMER0_OVF)
+void Gpt_T0Ovf_ISR(void)
 {
 	if(gu32_T0_OvfCounts == 0)
 	{
@@ -1441,7 +1439,7 @@ ISR(TIMER0_OVF)
 * Return value: None
 * Description: interrupt service routine for timer 1 overflow
 ******************************************************************************************/
-ISR(TIMER1_OVF)
+void Gpt_T1OvfCounter_ISR(void)
 {
 	gu32_T1_OVF_TICKS++;
 	#if 0
@@ -1464,9 +1462,30 @@ ISR(TIMER1_OVF)
 * Parameters (in): None
 * Parameters (out):None
 * Return value: None
+* Description: interrupt service routine for timer 1 overflow
+******************************************************************************************/
+void Gpt_T1Ovf_ISR(void)
+{
+
+	if(gu32_T1_OvfCounts == 0)
+	{
+		Gpt_Status[TIMER_1] = GPT_STATUS_NOT_RUNNING;
+		GptStop(TIMER_1);
+		T1ovfCallback();
+		
+	}
+	else
+	{
+		gu32_T1_OvfCounts--;
+	}
+}
+/*****************************************************************************************
+* Parameters (in): None
+* Parameters (out):None
+* Return value: None
 * Description: interrupt service routine for timer 2 overflow
 ******************************************************************************************/
-ISR(TIMER2_OVF)
+void Gpt_T2Ovf_ISR(void)
 {
 	if(gu32_T2_OvfCounts == 0)
 	{

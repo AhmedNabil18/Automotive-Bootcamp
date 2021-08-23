@@ -12,9 +12,9 @@
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
-#include "../Robot Steering Module/Rbt_Steering.h"
-#include "../Sensing Module/Sensing.h"
-#include "../Display Module/Display.h"
+#include "AppL/Robot Steering Module/Rbt_Steering.h"
+#include "AppL/Sensing Module/Sensing.h"
+#include "AppL/Display Module/Display.h"
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/

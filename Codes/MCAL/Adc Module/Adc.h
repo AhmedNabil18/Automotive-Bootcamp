@@ -12,9 +12,9 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Adc_Cfg.h"
-#include "..\Platform_Types.h"
-#include "..\ATMega32_Interrupts.h"
-
+#include "Microcontroller\Platform_Types.h"
+#include "Microcontroller\Interrupt Handler\Interrupt_Interface.h"
+#include "Microcontroller\Atmega32 Registers\Dio_regs.h"
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/

@@ -12,9 +12,9 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Spi_Cfg.h"
-#include "..\Platform_Types.h"
+#include "Microcontroller\Platform_Types.h"
 #include "Spi_Symbols.h"
-#include "..\ATMega32_Interrupts.h"
+#include "Microcontroller/Interrupt Handler/Interrupt_Interface.h"
 
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/

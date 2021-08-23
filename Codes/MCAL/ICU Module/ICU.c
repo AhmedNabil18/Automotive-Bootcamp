@@ -8,7 +8,6 @@
 
 /**************************INCLUDES***************************************/
 #include "ICU.h"
-#include "..\Interrupt Driver\ISR.h"
 
 
 /************************************************************************/
@@ -35,7 +34,7 @@ static void ICU_CH0CallBackFunction(void)
 		
 		
 		/* Reverse the external interrupt polarity */
-		EnableExternalInterrupts_INT2(FALLING_EDGE);
+		EnableExtINT(EXT_INT2,FALLING_EDGE);
 		
 	}
 	else if (ICU_state[ICU_CHANNEL_0]==ICU_FALLING)
@@ -51,7 +50,7 @@ static void ICU_CH0CallBackFunction(void)
 		ICU_state[ICU_CHANNEL_0] = ICU_RETURN_READY;
 		
 		/* disable interrupt */
-		DisableExternalInterrupts_INT2();
+		DisableExtINT(EXT_INT2);
 	}
 }
 Std_ReturnType ICU_Init(void)
@@ -62,23 +61,9 @@ Std_ReturnType ICU_Init(void)
 	{
 		/* update function state */
 		ICU_state[loopCounter_u8] =ICU_RISING;
-		switch(ICU_Configurations[loopCounter_u8].Ext_InterruptChannel)
-		{
-			case EXT_INT0:
-				setExtINT0Callback(ICU_CH0CallBackFunction);
-				EnableExternalInterrupts_INT0(RISING_EDGE);
-				break;
-			case EXT_INT1:
-// 				setExtINT1Callback(ICU_CH1CallBackFunction);
-// 				EnableExternalInterrupts_INT1(RISING_EDGE);
-				break;
-			case EXT_INT2:
-				setExtINT2Callback(ICU_CH0CallBackFunction);
-				EnableExternalInterrupts_INT2(RISING_EDGE);
-				break;
-			default:
-				return E_NOT_OK;
-		}
+		setExtINTCallback(EXT_INT0,ICU_CH0CallBackFunction);
+		EnableExtINT(ICU_Configurations[loopCounter_u8].Ext_InterruptChannel ,RISING_EDGE);
+
 	}
 	return E_OK;
 }
@@ -102,9 +87,9 @@ Std_ReturnType ICU_GetONPeriod_Counts(ICU_channel_t ChannelId_u8 , ICU_Counts_t 
 				
 		ICU_state[ChannelId_u8] =ICU_RISING;
 		/* set call back function */
-		setExtINT2Callback(ICU_CH0CallBackFunction);
+		setExtINTCallback(ICU_Configurations[ChannelId_u8].Ext_InterruptChannel,ICU_CH0CallBackFunction);
 		/* Enable interrupt */
-		EnableExternalInterrupts_INT2(RISING_EDGE);
+		EnableExtINT(ICU_Configurations[ChannelId_u8].Ext_InterruptChannel,RISING_EDGE);
 		return E_OK;
 	}
 	

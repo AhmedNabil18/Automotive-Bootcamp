@@ -70,8 +70,6 @@ Std_ReturnType App_init(void)
 /**************************************************************************************/
 /*								Function Implementation								  */
 /**************************************************************************************/
-
-	EnableGlobalInterrupts();
 	
 	/* Call the Robot Module initializer */
 	if(ROBOT_STATUS_ERROR_OK != RbtSteering_init())
