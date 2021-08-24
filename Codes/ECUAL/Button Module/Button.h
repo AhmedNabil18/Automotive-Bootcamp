@@ -49,12 +49,12 @@ typedef uint8_t u8_ButtonChannel_t;
  *                      Function Prototypes                                    *
  *******************************************************************************/
 /* Function to initialize the button module */
-enuBttn_Status_t Button_init(void);
+Std_ReturnType Button_init(void);
 
 /* Function to get the state of the button */
-enuBttn_Status_t Button_getState(u8_ButtonChannel_t u8_bttnID, u8_ButtonState_t * pu8_state);
+Std_ReturnType Button_getState(u8_ButtonChannel_t u8_bttnID, u8_ButtonState_t * pu8_state);
 
 /* Function to update the state of the button */
-enuBttn_Status_t Button_updateState(u8_ButtonChannel_t u8_bttnID);
+Std_ReturnType Button_updateState(u8_ButtonChannel_t u8_bttnID);
 
 #endif /* BUTTON_H_ */

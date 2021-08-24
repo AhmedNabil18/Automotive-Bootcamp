@@ -12,10 +12,7 @@
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
-#include "AppL/Obstacle Avoidance Robot/Obstcl_Avd_Rbt.h"
-#include "AppL/Robot Steering Module/Rbt_Steering.h"
-#include "AppL/Sensing Module/Sensing.h"
-#include "AppL/Display Module/Display.h"
+#include "App Layer/Obstacle_Avoidance_Car/Obstacle Avoidance Robot/Obstcl_Avd_Rbt.h"
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/
 
@@ -45,7 +42,5 @@ Std_ReturnType App_init(void);
 
 /* Function to update the application */
 Std_ReturnType App_update(void);
-
-
 
 #endif /* APP_H_ */

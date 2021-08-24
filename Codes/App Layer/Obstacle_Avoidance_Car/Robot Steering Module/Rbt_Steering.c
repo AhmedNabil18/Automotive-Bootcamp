@@ -97,19 +97,19 @@ Robot_Status_t RbtSteering_setData(RobotDir_t u8_direction, RobotSpeed_t u8_spee
 	/* Check if the ROBOT module is not initialized */
 	if(RobotModuleStatus_gu8 != ROBOT_STATUS_INIT)
 	{
-		return E_NOT_OK;
+		return ROBOT_STATUS_ERROR_NOK;
 	}else{/*Nothing to here*/}
 		
 	/* Check if the speed is out of range */
 	if (100 < u8_speed)
 	{
-		return E_NOT_OK;
+		return ROBOT_STATUS_ERROR_NOK;
 	}else{/*Nothing to here*/}
 			
 	/* Check if the Robot direction is invalid */
 	if (ROBOT_DIR_INVALID <= u8_direction)
 	{
-		return E_NOT_OK;
+		return ROBOT_STATUS_ERROR_NOK;
 	}else{/*Nothing to here*/}
 /**************************************************************************************/
 /*								End of Error Checking								  */
@@ -277,7 +277,7 @@ Robot_Status_t RbtSteering_move(RobotDir_t u8_direction, RobotSpeed_t u8_speed)
 	/* Change the state of the Motor to Running */
 	RobotState_gau8 = ROBOT_RUNNING;
 	
-	return E_OK;
+	return ROBOT_STATUS_ERROR_OK;
 }
 
 
@@ -292,7 +292,7 @@ Robot_Status_t RbtSteering_move(RobotDir_t u8_direction, RobotSpeed_t u8_speed)
 * Description: Function to Stop the Robot.
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /* Function to stop robot */
-Std_ReturnType RbtSteering_stop()
+Robot_Status_t RbtSteering_stop()
 {
 /**************************************************************************************/
 /*								Start of Error Checking								  */
@@ -300,7 +300,7 @@ Std_ReturnType RbtSteering_stop()
 	/* Check if the motor index is invalid */
 	if (ROBOT_STOPPED == RobotModuleStatus_gu8)
 	{
-		return E_OK;
+		return ROBOT_STATUS_ERROR_NOK;
 	}else{/*Nothing to here*/}
 				
 /**************************************************************************************/
@@ -315,5 +315,5 @@ Std_ReturnType RbtSteering_stop()
 	Motor_stop(RbtSteering_Configuratons.Rbt_rightMotorID);
 	/* Change the state of the Robot to Stopped */
 	RobotState_gau8 = ROBOT_STOPPED;
-	return E_OK;
+	return ROBOT_STATUS_ERROR_OK;
 }

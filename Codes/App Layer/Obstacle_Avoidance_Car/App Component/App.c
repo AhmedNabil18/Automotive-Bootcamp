@@ -32,8 +32,7 @@ Std_ReturnType App_start(void)
 	/* Initialize the Car application */
 	if(App_init() != E_OK)
 		return E_NOT_OK;
-	
-
+		
 	/* Application Super Loop */
 	while (1)
 	{
@@ -70,7 +69,6 @@ Std_ReturnType App_init(void)
 /**************************************************************************************/
 /*								Function Implementation								  */
 /**************************************************************************************/
-	
 	/* Call the Robot Module initializer */
 	if(ROBOT_STATUS_ERROR_OK != RbtSteering_init())
 	{

@@ -61,7 +61,7 @@ Std_ReturnType ICU_Init(void)
 	{
 		/* update function state */
 		ICU_state[loopCounter_u8] =ICU_RISING;
-		setExtINTCallback(EXT_INT0,ICU_CH0CallBackFunction);
+		setExtINTCallback(ICU_Configurations[loopCounter_u8].Ext_InterruptChannel,ICU_CH0CallBackFunction);
 		EnableExtINT(ICU_Configurations[loopCounter_u8].Ext_InterruptChannel ,RISING_EDGE);
 
 	}

@@ -1305,7 +1305,7 @@ enuGpt_Status_t Gpt_StartTimer(uint8_t ChannelId)
 	{
 		case(TIMER_1):
 		{
-			//GptStart_aSync(TIMER_1,MAX_TICKS_T1,T1ExpireFunc);
+			Interrupt_install(TIMER1_OVF_IRQ, Gpt_T1OvfCounter_ISR);
 			if(Gpt_Status[TIMER_1] == GPT_STATUS_ALREADY_RUNNING)
 			{
 				return GPT_STATUS_ALREADY_RUNNING;
