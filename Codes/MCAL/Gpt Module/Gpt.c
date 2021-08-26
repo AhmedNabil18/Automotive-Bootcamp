@@ -31,10 +31,10 @@ static uint32_t gu32_T1_OVF_TICKS =0;
 enuGpt_Status_t Gpt_Status[GPT_CHANNELS] = {GPT_STATUS_ERROR_NOK};
 enuGpt_initStatus_t Gpt_Init = GPT_NOT_INITIALIZED;
 
-void Gpt_T0Ovf_ISR(void);
-void Gpt_T1Ovf_ISR(void);
-void Gpt_T2Ovf_ISR(void);
-void Gpt_T1OvfCounter_ISR(void);
+void Gpt_T0Ovf_ISR(uint8_t Int_ID);
+void Gpt_T1Ovf_ISR(uint8_t Int_ID);
+void Gpt_T2Ovf_ISR(uint8_t Int_ID);
+void Gpt_T1OvfCounter_ISR(uint8_t Int_ID);
 
 
 
@@ -1300,12 +1300,11 @@ case(TIMER_1):
 ******************************************************************************************/
 enuGpt_Status_t Gpt_StartTimer(uint8_t ChannelId)
 {
-	EnableGlobalInterrupts();
 	switch(strGpt_Channels[ChannelId].u8_TimerNumber)
 	{
 		case(TIMER_1):
 		{
-			Interrupt_install(TIMER1_OVF_IRQ, Gpt_T1OvfCounter_ISR);
+			//GptStart_aSync(TIMER_1,MAX_TICKS_T1,T1ExpireFunc);
 			if(Gpt_Status[TIMER_1] == GPT_STATUS_ALREADY_RUNNING)
 			{
 				return GPT_STATUS_ALREADY_RUNNING;
@@ -1420,13 +1419,13 @@ void Gpt_ReturnCounterVal(uint8_t ChannelId , uint32_t *u32_CounterVal)
 * Return value: None
 * Description: interrupt service routine for timer 0 overflow
 ******************************************************************************************/
-void Gpt_T0Ovf_ISR(void)
+void Gpt_T0Ovf_ISR(uint8_t Int_ID)
 {
 	if(gu32_T0_OvfCounts == 0)
 	{
 		 Gpt_Status[TIMER_0] = GPT_STATUS_NOT_RUNNING;
 		 GptStop(TIMER_0);
-		 T0ovfCallback();
+		 T0ovfCallback(Int_ID);
 	}
 	else
 	{
@@ -1439,7 +1438,7 @@ void Gpt_T0Ovf_ISR(void)
 * Return value: None
 * Description: interrupt service routine for timer 1 overflow
 ******************************************************************************************/
-void Gpt_T1OvfCounter_ISR(void)
+void Gpt_T1OvfCounter_ISR(uint8_t Int_ID)
 {
 	gu32_T1_OVF_TICKS++;
 	#if 0
@@ -1449,7 +1448,7 @@ void Gpt_T1OvfCounter_ISR(void)
 		GptStop(TIMER_1);
 		/* Reset  gu32_T1_OVF_TICKS */
 		gu32_T1_OVF_TICKS=0;
-		T1ovfCallback();
+		T1ovfCallback(Int_ID);
 		
 	}
 	else
@@ -1464,14 +1463,14 @@ void Gpt_T1OvfCounter_ISR(void)
 * Return value: None
 * Description: interrupt service routine for timer 1 overflow
 ******************************************************************************************/
-void Gpt_T1Ovf_ISR(void)
+void Gpt_T1Ovf_ISR(uint8_t Int_ID)
 {
 
 	if(gu32_T1_OvfCounts == 0)
 	{
 		Gpt_Status[TIMER_1] = GPT_STATUS_NOT_RUNNING;
 		GptStop(TIMER_1);
-		T1ovfCallback();
+		T1ovfCallback(Int_ID);
 		
 	}
 	else
@@ -1485,13 +1484,13 @@ void Gpt_T1Ovf_ISR(void)
 * Return value: None
 * Description: interrupt service routine for timer 2 overflow
 ******************************************************************************************/
-void Gpt_T2Ovf_ISR(void)
+void Gpt_T2Ovf_ISR(uint8_t Int_ID)
 {
 	if(gu32_T2_OvfCounts == 0)
 	{
 		Gpt_Status[TIMER_2] = GPT_STATUS_NOT_RUNNING;
 		GptStop(TIMER_2);
-		T2ovfCallback();
+		T2ovfCallback(Int_ID);
 	}
 	else
 	{

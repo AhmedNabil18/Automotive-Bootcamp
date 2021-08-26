@@ -32,6 +32,8 @@ typedef uint8_t DebouncingClientState_t;
 
 typedef Std_ReturnType (*BouncingDev_getterFun_t)(uint8_t , uint8_t *);
 
+typedef void (*Debouncing_CallBack_t)(uint8_t);
+
 /*
  * Data Type for Debouncing Client Configurations per button    
  */
@@ -45,14 +47,14 @@ typedef struct
 	BouncingDev_getterFun_t BouncingDev_getterFun_Ptr;
 }DebouncingClient_Config_t;
 
-ptr_VoidFuncVoid DebouncingClient_getEventCallback(uint8_t DevClient_ID);
+Debouncing_CallBack_t DebouncingClient_getEventCallback(uint8_t DevClient_ID);
 Std_ReturnType DebouncingClient_getState(u8_ButtonChannel_t BtnClient_ButtonID, u8_ButtonState_t *BtnClient_ButtonReading_pu8);
 Std_ReturnType DebouncingClient_mainFunction(u8_ButtonChannel_t BtnClient_ButtonID);
 Std_ReturnType DebouncingClient_eventReceive(u8_ButtonChannel_t BtnClient_ButtonID);
 
-void BouncingDevice_callBack_0(void);
-void BouncingDevice_callBack_1(void);
-void BouncingDevice_callBack_2(void);
+void BouncingDevice_callBack_0(uint8_t Int_ID);
+void BouncingDevice_callBack_1(uint8_t Int_ID);
+void BouncingDevice_callBack_2(uint8_t Int_ID);
 
 extern DebouncingClient_Config_t DebouncingClient_Configrations[BOUNCING_DEVICES_USED_NUM];
 

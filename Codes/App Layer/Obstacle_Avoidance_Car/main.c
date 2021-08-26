@@ -6,6 +6,7 @@
  */ 
 
 
+#if 0
 #include "App Component/App.h"
 
 int main(void)
@@ -17,6 +18,7 @@ int main(void)
     {
     }
 }
+#endif
 
 
 
@@ -35,42 +37,26 @@ int main(void)
 
 
 
+#include "App Layer/Bcm Module/Bcm.h"
+#include "MCAL/Dio Module/Dio.h"
 
+void Toggle_PinISR(uint8_t id)
+{
+	DIO_PORTB_DATA = 0xFF;
+}
 
-
-
-
-// #include "APPL/Robot Module/Robot.h"
-// #include "MCAL/Delay Module/Delay.h"
-// #include "ECUAL/Lcd Module/Lcd.h"
-// #include "APPL/App Component/App.h"
-// 
-// int main(void)
-// {
-// 	Lcd_init();
-// 	EnableGlobalInterrupts();
-// 	//Lcd_sendCharacter('B');
-// 	
-// 	
-// 	
-// 	
-// 	
-// 	GptInit();
-//  	
-// 	DIO_PORTB_DIR |= 1<<0;
-// 	GptStart_aSync(TIMER_CHANNEL_0_ID, 125000, ISRCallback);
-// 	
-// 	
-// 	
-// 	DIO_PORTB_DIR |= 1<<0;
-// 	if(RobotApp_start() == APP_STATUS_ERROR_NOK)
-// 	{
-// 	}
-//     /* Replace with your application code */
-//     while (1) 
-//     {
-// 	    //Lcd_asyncSendString((uint8_t*)"ABC");
-// 		Lcd_sendString((uint8_t*)"ABC");
-//     }
-// }
+int main(void)
+{
+	Uart_init();
+	BCM_init();
+	EnableGlobalInterrupts();
+	DIO_PORTB_DIR = 0xFF;
+	DIO_PORTB_DATA = 0x00;
+	while(1)
+	{
+		BCM_Transmit(BCM_CHANNEL_0, (uint8_t*)"Array", 5,Toggle_PinISR);
+		BCM_TxMainFunction();
+	}
+	return 0;
+}
 

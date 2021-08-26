@@ -13,6 +13,7 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Uart_Cfg.h"
+#include "Microcontroller\Std_types.h"
 #include "Microcontroller\Platform_Types.h"
 #include "Uart_Symbols.h"
 #include "Microcontroller/Interrupt Handler/Interrupt_Interface.h"
@@ -60,7 +61,7 @@
  * Parameter (Out): None
  * Return Values : None
  */
-typedef void (*pfUart_CallBack_t)(void);
+typedef void (*pfUart_CallBack_t)(uint8_t);
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- ENUMS -*-*-*-*-*-*/
@@ -96,6 +97,12 @@ typedef struct
 /*- Initialize Uart Module -*/
 enuUart_Status_t Uart_init(void);
 
+/*- Non Blocking Write Byte -*/
+Std_ReturnType Uart_writeByte(uint8_t Uart_ChannelID, uint8_t u8_data);
+
+/*- Non Blocking read Byte -*/
+Std_ReturnType Uart_readByte(uint8_t Uart_ChannelID, uint8_t *pu8_data);
+
 /*- Send Single Data Frame 5~9 bits -*/
 enuUart_Status_t Uart_sendByte(uint8_t u8_Data);
 
@@ -109,7 +116,7 @@ enuUart_Status_t Uart_receiveByte(uint8_t *pu8_Data);
 enuUart_Status_t Uart_receivePacket(uint8_t *pu8_Data, uint16_t u16_packetSize);
 
 /*- Enable Interrupt Notification for TXC by calling Callback function -*/
-enuUart_Status_t Uart_EnableNotification_TXC(pfUart_CallBack_t Uart_Callback);
+enuUart_Status_t Uart_EnableNotification_TXC(uint8_t Uart_ChannelID);
 
 /*- Enable Interrupt Notification for RXC by calling Callback function -*/
 enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback);
@@ -118,7 +125,7 @@ enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback);
 enuUart_Status_t Uart_EnableNotification_UDRE(pfUart_CallBack_t Uart_Callback);
 
 /*- Disable Interrupt Notification for the given Interrupt Flag -*/
-enuUart_Status_t Uart_DisableNotification(uint8_t u8_InterruptFlags);
+enuUart_Status_t Uart_DisableNotification_TXC(uint8_t Uart_ChannelID);
 
 /*- Read the data register directly -*/
 uint8_t Uart_DataRegister(void);

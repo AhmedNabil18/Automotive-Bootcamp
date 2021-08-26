@@ -40,7 +40,7 @@ void EnableGlobalInterrupts(void);
 void DisableGlobalInterrupts(void);
 
 /** Installing and Deinstalling Functions **/
-void Interrupt_install(uint8_t vectorId_u8, pf_Vector ISR_Callback);
+void Interrupt_install(uint8_t vectorId_u8, pf_CallBack ISR_Callback);
 void Interrupt_deinstall(uint8_t vectorId_u8);
 
 #endif

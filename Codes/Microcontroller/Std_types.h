@@ -34,6 +34,7 @@ typedef void (*ptr_VoidFuncVoid)(void);
 #define STD_OFF         0x00U       /* Standard OFF */
 
 #define NULL_PTR		(void*)0
+#define NULL				0
 
 #define E_OK            ((Std_ReturnType)0x00U)      /* Function Return OK */
 #define E_NOT_OK        ((Std_ReturnType)0x01U)      /* Function Return NOT OK */

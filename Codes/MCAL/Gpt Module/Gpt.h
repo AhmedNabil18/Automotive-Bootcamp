@@ -21,7 +21,7 @@
 #define TIMER_1_MAX_TICKS	65536
 #define TIMER_2_MAX_TICKS	256
 /*- PRIMITIVE TYPES ----------------------------------------*/
-typedef void (*pfGpt_CallBack_t)(void);
+typedef void (*pfGpt_CallBack_t)(uint8_t);
 
 /*- ENUMS --------------------------------------------------*/
 typedef enum

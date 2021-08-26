@@ -15,7 +15,7 @@
 
 /*- PRIMITIVE TYPES ----------------------------------------*/
 typedef void (*pf_Vector)(void);
-
+typedef void (*pf_CallBack)(uint8_t);
 #define VECTORS_NUM     20U
 
 /*- Vector Table
@@ -48,7 +48,7 @@ void vector (void)
 
 /*- Function Declarations
 -------------------------------*/
-void IntDefaultHandler(void);
+void IntDefaultHandler(uint8_t Int_ID);
 
-extern pf_Vector old_Vectors[VECTORS_NUM];
+extern pf_CallBack old_Vectors[VECTORS_NUM];
 #endif /* INTERRUPT_H_ */

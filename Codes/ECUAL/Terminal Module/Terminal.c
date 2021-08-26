@@ -22,7 +22,7 @@ uint8_t gau8_data[MAX_INPUT_SIZE]={0};
 uint8_t gu8_counter=0;
 uint8_t gu8_flag=0;
 
-void Uart_RXC_ISR(void)
+void Uart_RXC_ISR(uint8_t Int_ID)
 {
 	gau8_data[gu8_counter] = Uart_DataRegister();
 	if (gau8_data[gu8_counter] == '\r')

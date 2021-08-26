@@ -14,6 +14,7 @@
 /*- The Operation Baudrate of the UART -*/
 #define USART_BAUDRATE			9600UL
 
+#define UART_CHANNEL_0				0U
 
 /*- UART Enable Transmission and/or Reception -*/
 /* :Options:

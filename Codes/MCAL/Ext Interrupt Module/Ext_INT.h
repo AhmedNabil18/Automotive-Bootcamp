@@ -15,7 +15,7 @@
 #include "../../Libraries/Common_Macros.h"
 
 /*- PRIMITIVE TYPES ----------------------------------------*/
-typedef void (*pfExtINT_CallBack_t)(void);
+typedef void (*pfExtINT_CallBack_t)(uint8_t);
 
 /* CONSTANTS */
 

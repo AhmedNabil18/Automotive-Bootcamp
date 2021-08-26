@@ -13,7 +13,7 @@
 
 /*- GLOBAL STATIC VARIABLES
 -------------------------------*/
-pf_Vector old_Vectors[VECTORS_NUM] = 
+pf_CallBack old_Vectors[VECTORS_NUM] = 
 {
     IntDefaultHandler,          /** External Interrupt Request 0 **/
     IntDefaultHandler,          /** External Interrupt Request 1 **/
@@ -49,7 +49,7 @@ void DisableGlobalInterrupts(void)
 
 /*- Function Definitions
 -------------------------------*/
-void IntDefaultHandler(void)
+void IntDefaultHandler(uint8_t Int_ID)
 {
     while (1)
     {
@@ -65,100 +65,100 @@ void IntDefaultHandler(void)
 ******************************************************************************************/
 ISR(INT0)
 {
-    old_Vectors[INT0_IRQ]();
+    old_Vectors[INT0_IRQ](INT0_IRQ);
 }
 
 ISR(INT1)
 {
-    old_Vectors[INT1_IRQ]();
+    old_Vectors[INT1_IRQ](INT1_IRQ);
 }
 
 ISR(INT2)
 {
-    old_Vectors[INT2_IRQ]();
+    old_Vectors[INT2_IRQ](INT2_IRQ);
 }
 
 ISR(TIMER2_COMP)
 {
-    old_Vectors[TIMER2_COMP_IRQ]();
+    old_Vectors[TIMER2_COMP_IRQ](TIMER2_COMP_IRQ);
 }
 
 ISR(TIMER2_OVF)
 {
-    old_Vectors[TIMER2_OVF_IRQ]();
+    old_Vectors[TIMER2_OVF_IRQ](TIMER2_OVF_IRQ);
 }
 
 ISR(TIMER1_CAPT)
 {
-    old_Vectors[TIMER1_CAPT_IRQ]();
+    old_Vectors[TIMER1_CAPT_IRQ](TIMER1_CAPT_IRQ);
 }
 
 ISR(TIMER1_COMPA)
 {
-    old_Vectors[TIMER1_COMPA_IRQ]();
+    old_Vectors[TIMER1_COMPA_IRQ](TIMER1_COMPA_IRQ);
 }
 
 ISR(TIMER1_COMPB)
 {
-    old_Vectors[TIMER1_COMPB_IRQ]();
+    old_Vectors[TIMER1_COMPB_IRQ](TIMER1_COMPB_IRQ);
 }
 
 ISR(TIMER1_OVF)
 {
-    old_Vectors[TIMER1_OVF_IRQ]();
+    old_Vectors[TIMER1_OVF_IRQ](TIMER1_OVF_IRQ);
 }
 
 ISR(TIMER0_COMP)
 {
-    old_Vectors[TIMER0_COMP_IRQ]();
+    old_Vectors[TIMER0_COMP_IRQ](TIMER0_COMP_IRQ);
 }
 
 ISR(TIMER0_OVF)
 {
-    old_Vectors[TIMER0_OVF_IRQ]();
+    old_Vectors[TIMER0_OVF_IRQ](TIMER0_OVF_IRQ);
 }
 
 ISR(SPI_STC)
 {
-    old_Vectors[SPI_STC_IRQ]();
+    old_Vectors[SPI_STC_IRQ](SPI_STC_IRQ);
 }
 
 ISR(USART_RXC)
 {
-    old_Vectors[USART_RXC_IRQ]();
+    old_Vectors[USART_RXC_IRQ](USART_RXC_IRQ);
 }
 
 ISR(USART_UDRE)
 {
-    old_Vectors[USART_UDRE_IRQ]();
+    old_Vectors[USART_UDRE_IRQ](USART_UDRE_IRQ);
 }
 
 ISR(USART_TXC)
 {
-    old_Vectors[USART_TXC_IRQ]();
+    old_Vectors[USART_TXC_IRQ](USART_TXC_IRQ);
 }
 
 ISR(ADC)
 {
-    old_Vectors[ADC_IRQ]();
+    old_Vectors[ADC_IRQ](ADC_IRQ);
 }
 
 ISR(EE_RDY)
 {
-    old_Vectors[EE_RDY_IRQ]();
+    old_Vectors[EE_RDY_IRQ](EE_RDY_IRQ);
 }
 
 ISR(ANA_COMP)
 {
-    old_Vectors[ANA_COMP_IRQ]();
+    old_Vectors[ANA_COMP_IRQ](ANA_COMP_IRQ);
 }
 
 ISR(TWI)
 {
-    old_Vectors[TWI_IRQ]();
+    old_Vectors[TWI_IRQ](TWI_IRQ);
 }
 
 ISR(SPM_RDY)
 {
-    old_Vectors[SPM_RDY_IRQ]();
+    old_Vectors[SPM_RDY_IRQ](SPM_RDY_IRQ);
 }

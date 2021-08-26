@@ -9,17 +9,17 @@
 #include "Debouncing_Handler.h"
 #include "MCAL/Gpt Module/Gpt.h"
 
-void Dev_0_TimerCallbackFunction(void);
-void Dev_1_TimerCallbackFunction(void);
-void Dev_2_TimerCallbackFunction(void);
+void Dev_0_TimerCallbackFunction(uint8_t Int_ID);
+void Dev_1_TimerCallbackFunction(uint8_t Int_ID);
+void Dev_2_TimerCallbackFunction(uint8_t Int_ID);
 
 DebouncingClientState_t   DevClient_State[BOUNCING_DEVICES_USED_NUM] = {DEBOUNCING_CLIENT_STATE_IDLE};
 uint8_t  DevClient_currentState[BOUNCING_DEVICES_USED_NUM] = {PIN_LOW};
 static uint8_t bouncingDev_counter = 0;
 pfGpt_CallBack_t DebouncingClient_TimerCallbackFunctions[TIMERS_NUM] = {Dev_0_TimerCallbackFunction, Dev_1_TimerCallbackFunction, Dev_2_TimerCallbackFunction};
-ptr_VoidFuncVoid DebouncingClient_EventCallbackFunctions[DEBOUNCING_MAX_CLIENTS_NUM] = {BouncingDevice_callBack_0, BouncingDevice_callBack_1, BouncingDevice_callBack_2};
+Debouncing_CallBack_t DebouncingClient_EventCallbackFunctions[DEBOUNCING_MAX_CLIENTS_NUM] = {BouncingDevice_callBack_0, BouncingDevice_callBack_1, BouncingDevice_callBack_2};
 
-ptr_VoidFuncVoid DebouncingClient_getEventCallback(uint8_t DevClient_ID)
+Debouncing_CallBack_t DebouncingClient_getEventCallback(uint8_t DevClient_ID)
 {
 	if((DevClient_ID < BOUNCING_DEVICES_USED_NUM) && (bouncingDev_counter < DEBOUNCING_MAX_CLIENTS_NUM-1))
 	{
@@ -137,19 +137,19 @@ Std_ReturnType DebouncingClient_eventReceive(uint8_t DevClient_ID)
 }
 
 /** These callback functions must be installed in the interrupt vector table **/
-void BouncingDevice_callBack_0(void)
+void BouncingDevice_callBack_0(uint8_t Int_ID)
 {
 	DebouncingClient_eventReceive(0);
 }
 
 /** These callback functions must be installed in the interrupt vector table **/
-void BouncingDevice_callBack_1(void)
+void BouncingDevice_callBack_1(uint8_t Int_ID)
 {
 	DebouncingClient_eventReceive(1);
 }
 
 /** These callback functions must be installed in the interrupt vector table **/
-void BouncingDevice_callBack_2(void)
+void BouncingDevice_callBack_2(uint8_t Int_ID)
 {
 	DebouncingClient_eventReceive(2);
 }
@@ -157,7 +157,7 @@ void BouncingDevice_callBack_2(void)
 
 
 
-void Dev_0_TimerCallbackFunction(void)
+void Dev_0_TimerCallbackFunction(uint8_t Int_ID)
 {
 	if(DevClient_State[0] == DEBOUNCING_CLIENT_STATE_BUSY)
 	{
@@ -171,7 +171,7 @@ void Dev_0_TimerCallbackFunction(void)
 
 
 
-void Dev_1_TimerCallbackFunction(void)
+void Dev_1_TimerCallbackFunction(uint8_t Int_ID)
 {
 	if(DevClient_State[1] == DEBOUNCING_CLIENT_STATE_BUSY)
 	{
@@ -184,7 +184,7 @@ void Dev_1_TimerCallbackFunction(void)
 }
 
 
-void Dev_2_TimerCallbackFunction(void)
+void Dev_2_TimerCallbackFunction(uint8_t Int_ID)
 {
 	if(DevClient_State[2] == DEBOUNCING_CLIENT_STATE_BUSY)
 	{

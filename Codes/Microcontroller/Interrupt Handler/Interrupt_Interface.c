@@ -7,7 +7,7 @@
 ******************************************************************************/
 #include "Interrupt_Interface.h"
 
-void Interrupt_install(uint8_t vectorId_u8, pf_Vector ISR_Callback)
+void Interrupt_install(uint8_t vectorId_u8, pf_CallBack ISR_Callback)
 {
     if((ISR_Callback != NULL_PTR) && (vectorId_u8 < INVALID_ID))
     {
