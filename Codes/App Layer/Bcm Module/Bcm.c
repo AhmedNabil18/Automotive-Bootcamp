@@ -1,29 +1,57 @@
 /*
  * Bcm.c
  *
- * Created: 8/25/2021 7:14:41 PM
- *  Author: Ahmed Nabil
+ * Created: 8/25/2021
+ *  Authors: Mohamed Magdy & Ahmed Nabil 
  */ 
 
+/*- INCLUDES
+----------------------------------------------*/
 #include "Bcm.h"
 
+/*- CONSTANTS
+----------------------------------------------*/
+#define BCM_ID			        (99U)
+#define RUNNING					(51U)
+#define IDLE					(52U)
+#define RECEIVED				(53U)
+#define NOT_RECEIVED_YET		(55U)
+
+
+
+/*- GLOBAL EXTERN VARIABLES -------------------------------------*/
+strRxComChannels_Data_t	arrStr_RxComChannels[COM_CHANNELS_USED];
 BCM_TxRequestData_t BCM_TxRequests[BCM_COM_DEVICES_USED][BCM_MAX_TX_REQUESTS];
-
 BCM_TxRequestData_t *BCM_TxCurrentRequest[BCM_COM_DEVICES_USED];
-
 uint16_t BCM_TxRequests_Counter[BCM_COM_DEVICES_USED] = {0};
 uint16_t BCM_TxRequests_Available[BCM_COM_DEVICES_USED] = {0};
 uint16_t BCM_TxRequest_Index[BCM_COM_DEVICES_USED] = {0};
 BCM_mainState_t BCM_TxCurrentChannelsState[BCM_COM_DEVICES_USED] = {BCM_MAINFUNC_STATE_IDLE};
-
 uint16_t BCM_dataCounter[BCM_COM_DEVICES_USED] = {0};
 
 
+
+/*- LOCAL FUNCTIONS IMPLEMENTATION
+------------------------*/
+/************************************************************************************
+* Parameters (in): None
+* Parameters (out): Error Status
+* Return value: Std_ReturnType
+* Description: initialized BCM module.
+************************************************************************************/
 Std_ReturnType BCM_init(void)
 {
 	uint8_t BCM_channelCounter=0;
 	
-	for(BCM_channelCounter=0; BCM_channelCounter<BCM_COM_DEVICES_USED; BCM_channelCounter++)
+	
+	
+	for(BCM_channelCounter=0; BCM_channelCounter<BCM_RX_COM_DEVICES_USED; BCM_channelCounter++)
+	{
+		Uart_EnableNotification_BCM(0);
+		Interrupt_install(USART_RXC_IRQ, BCM_RxCallBack);
+	}
+	
+	for(BCM_channelCounter=0; BCM_channelCounter<BCM_TX_COM_DEVICES_USED; BCM_channelCounter++)
 	{
 		Interrupt_install(BCM_TxConfigurations[BCM_channelCounter].BCM_Tx_INTVector_ID, BCM_TxCallBack_Function);
 	}
@@ -31,6 +59,105 @@ Std_ReturnType BCM_init(void)
 	return E_OK;
 }
 
+/************************************************************************************
+* Parameters (in): comChannelId
+* Parameters (out): Error Status
+* Return value: Std_ReturnType
+* Description: ask BCM to get any received data from a certain com. channel
+************************************************************************************/
+Std_ReturnType BCM_getData(uint8_t comChannelId, uint8_t* BCM_RxData_ptr, uint8_t BCM_RxData_size)
+{
+	/* get the currently saved data from the given com. channel buffer at BCM */
+	uint8_t u8_loopCounter = Initial_Value;
+	for(u8_loopCounter = Initial_Value; u8_loopCounter < BCM_RxData_size; u8_loopCounter++)
+	{
+		BCM_RxData_ptr[u8_loopCounter] = arrStr_RxComChannels[comChannelId].BCM_ComChannelRxBuffer[u8_loopCounter];
+	}
+	return E_OK;
+}
+/************************************************************************************
+* Parameters (in): None
+* Parameters (out): Error Status
+* Return value: Std_ReturnType
+* Description: update state BCM Rx.
+************************************************************************************/
+Std_ReturnType BCM_RxMainFunction()
+{
+	return E_OK;
+}
+/************************************************************************************
+* Parameters (in): None
+* Parameters (out): Error Status
+* Return value: Std_ReturnType
+* Description: update state of a given device.
+************************************************************************************/
+void BCM_RxCallBack(void)
+{
+	uint8_t u8_RxData;
+	STATIC uint8_t u8_frameState = NOT_RECEIVED_YET;
+	STATIC uint8_t u8_dataSizeState = NOT_RECEIVED_YET;
+	STATIC uint8_t u8_dataSize = Initial_Value;
+	STATIC uint8_t u8_frameReceiveState = IDLE;
+	STATIC uint8_t u8_dataCounter = Initial_Value;
+	
+	/* read byte from HW buffer */
+	strRxComChannels_Config[COM_CHANNEL_1_ID].channelReadFun(strRxComChannels_Config[COM_CHANNEL_1_ID].channelId, &u8_RxData);
+	
+	/* check for BCM ID */
+	if(u8_frameState == NOT_RECEIVED_YET)
+	{
+		if(u8_RxData == BCM_ID)
+		{
+			u8_frameState = RECEIVED;
+			return;
+		}
+		else
+		{
+			return;
+		}
+	}
+	
+	/* confirm size state */
+	if(u8_dataSizeState == NOT_RECEIVED_YET && u8_frameState == RECEIVED)
+	{
+		/* save frame size */
+		u8_dataSize = u8_RxData - '0';
+		/* change state */
+		u8_dataSizeState = RECEIVED;
+		return;
+	}
+	
+	/* start receiving data */
+	if(u8_dataSizeState == RECEIVED && u8_frameState == RECEIVED && u8_frameReceiveState != RECEIVED)
+	{
+		/* change state to running */
+		u8_frameReceiveState = RUNNING;
+		/* save current byte into buffer using channelReadFun */
+		arrStr_RxComChannels[COM_CHANNEL_1_ID].BCM_ComChannelRxBuffer[u8_dataCounter] = u8_RxData;
+		/* increment data counter */
+		u8_dataCounter++;
+		/* check if last byte of data received then change state to RECEIVED */
+		if(u8_dataCounter == u8_dataSize)
+		{
+			u8_frameReceiveState = RECEIVED;
+			return;
+		}
+
+	}
+	
+	/* get check sum */
+	if(u8_frameReceiveState == RECEIVED)
+	{
+		/* calculate check sum of data and save it */
+		arrStr_RxComChannels[COM_CHANNEL_1_ID].BCM_ComChannelRxBuffer_Chksum = u8_RxData;
+		/* reset states */
+		u8_frameState = NOT_RECEIVED_YET;
+		u8_dataSizeState = NOT_RECEIVED_YET;
+		u8_dataSize = Initial_Value;
+		u8_frameReceiveState = IDLE;
+		u8_dataCounter = Initial_Value;
+	}
+}
 
 Std_ReturnType BCM_Transmit(BCM_DeviceID_t BCM_Channel_ID,
 							uint8_t *BCM_TxData_ptr,
@@ -168,7 +295,7 @@ void BCM_TxCallBack_Function(uint8_t IntVector_ID)
 {
 	uint8_t BCM_channelCounter=0;
 	
-	for(BCM_channelCounter=0; BCM_channelCounter<BCM_COM_DEVICES_USED; BCM_channelCounter++)
+	for(BCM_channelCounter=0; BCM_channelCounter<BCM_TX_COM_DEVICES_USED; BCM_channelCounter++)
 	{
 		if(BCM_TxConfigurations[BCM_channelCounter].BCM_Tx_INTVector_ID == IntVector_ID)
 		{

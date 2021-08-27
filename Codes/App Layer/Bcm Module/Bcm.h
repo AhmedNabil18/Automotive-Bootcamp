@@ -2,18 +2,25 @@
  * Bcm.h
  *
  * Created: 8/25/2021 7:15:09 PM
- *  Author: Ahmed Nabil
+ *  Author: Mohamed Magdy & Ahmed Nabil
  */ 
 
 
 #ifndef BCM_H_
 #define BCM_H_
 
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+/*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "Bcm_LCfg.h"
 #include "Microcontroller/Std_types.h"
 #include "Microcontroller/Platform_Types.h"
 #include "Microcontroller/Interrupt Handler/Interrupt_Interface.h"
 #include "Libraries/Utility Module/Utility.h"
+
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+/*-*-*-*-*- CONSTANTS *-*-*-*-*-*/
+
+#define RX_BUFFER_MAX	(100U)
 /*
  * TX States
  */
@@ -34,6 +41,12 @@
 #define BCM_ID				99U
 #define BCM_ID_INDEX		0U
 
+
+/*- Primitive Types
+-------------------------------*/
+
+typedef Std_ReturnType(*channelRead_t)(uint8_t, uint8_t*);
+
 typedef uint8_t BCM_DeviceID_t;
 
 typedef void (*BCM_CallBack_t)(uint8_t);
@@ -43,6 +56,18 @@ typedef Std_ReturnType (*BCM_DeviceTxIntOnOff)(uint8_t);
 
 typedef uint8_t BCM_mainState_t;
 
+/*- STRUCTS AND UNIONS -------------------------------------*/
+typedef struct
+{
+	uint8_t channelId;
+	channelRead_t channelReadFun;
+}strRxComChannels_Config_t;
+
+typedef struct
+{
+	uint8_t	 BCM_ComChannelRxBuffer[RX_BUFFER_MAX];
+	uint16_t BCM_ComChannelRxBuffer_Chksum;
+}strRxComChannels_Data_t;
 typedef struct
 {
 	BCM_DeviceID_t BCM_Com_ID;
@@ -63,15 +88,23 @@ typedef struct
 	uint8_t BCM_TxRq_FrameSize;
 }BCM_TxRequestData_t;
 
+/*******************************************************************************
+ *                      Function Prototypes                                    *
+ *******************************************************************************/
+Std_ReturnType BCM_getData(uint8_t comChannelId, uint8_t* BCM_RxData_ptr, uint8_t BCM_RxData_size);
+Std_ReturnType BCM_RxMainFunction();
+void BCM_RxCallBack(void);
 Std_ReturnType BCM_init(void);
-
 Std_ReturnType BCM_Transmit(BCM_DeviceID_t BCM_Channel_ID,
 							uint8_t *BCM_TxData_ptr, 
 							uint16_t BCM_TxData_Size, BCM_CallBack_t BCM_CB_Ptr);
 Std_ReturnType BCM_TxMainFunction(void);
-
 Std_ReturnType BCM_cleanRequestData(BCM_TxRequestData_t *BCM_requestDataPtr);
 void BCM_TxCallBack_Function(uint8_t IntVector_ID);
+
+/* Configuration Extern Variable */
+extern strRxComChannels_Config_t strRxComChannels_Config[COM_CHANNELS_USED];
+
 extern const BCM_TxConfig_t BCM_TxConfigurations[BCM_COM_DEVICES_USED];
 
 #endif /* BCM_H_ */
