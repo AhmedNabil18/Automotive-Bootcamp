@@ -27,7 +27,7 @@ enuSWPwm_State_t genu_SWPwmModStatus = SWPWM_UNINITIALIZED;
 * Return value: None
 * Description: Function to be called inside the timer's ISR.
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-void waveFunction(void)
+void waveFunction(uint8_t IntVect_Num)
 {
 	/* Toggle the Pin of the PWM Channel */
 	if(Dio_togglePin(SWPwm_Channels[gu8_currentPwmChannel].u8_DioChannelID) != DIO_STATUS_ERROR_OK)

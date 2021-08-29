@@ -61,9 +61,15 @@ enuGpt_Status_t GptStop(uint8_t ChannelId);
 
 enuGpt_Status_t Gpt_StartTimer(uint8_t ChannelId);
 
+enuGpt_Status_t Gpt_EnableNotification_OVF(uint8_t ChannelId, pfGpt_CallBack_t FunToBeCalledInISR);
+enuGpt_Status_t Gpt_setCounterValue(uint8_t ChannelId, uint16_t CounterValue);
+enuGpt_Status_t Gpt_Start(uint8_t ChannelId, uint16_t InitialCount);
+
 void setOvfCallback(pfGpt_CallBack_t FunToBeCalledInISR);
 
 void Gpt_ReturnCounterVal(uint8_t ChannelId , uint32_t *u32_CounterVal);
 /*- EXTERN VARIABLE DECLARATIONS ----------------------------------*/
 extern strGpt_Config_t strGpt_Channels[GPT_USED_CHANNELS];
+
 #endif /* GPT_H_ */
+

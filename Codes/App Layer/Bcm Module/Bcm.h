@@ -37,8 +37,6 @@
 #define BCM_REQUEST_TX_SENDING		2U
 #define BCM_REQUEST_TX_REJECTED		3U
 
-
-#define BCM_ID				99U
 #define BCM_ID_INDEX		0U
 
 
@@ -93,7 +91,7 @@ typedef struct
  *******************************************************************************/
 Std_ReturnType BCM_getData(uint8_t comChannelId, uint8_t* BCM_RxData_ptr, uint8_t BCM_RxData_size);
 Std_ReturnType BCM_RxMainFunction();
-void BCM_RxCallBack(void);
+void BCM_RxCallBack(uint8_t IntVector_ID);
 Std_ReturnType BCM_init(void);
 Std_ReturnType BCM_Transmit(BCM_DeviceID_t BCM_Channel_ID,
 							uint8_t *BCM_TxData_ptr, 
@@ -103,8 +101,8 @@ Std_ReturnType BCM_cleanRequestData(BCM_TxRequestData_t *BCM_requestDataPtr);
 void BCM_TxCallBack_Function(uint8_t IntVector_ID);
 
 /* Configuration Extern Variable */
-extern strRxComChannels_Config_t strRxComChannels_Config[COM_CHANNELS_USED];
+extern strRxComChannels_Config_t strRxComChannels_Config[BCM_RX_COM_DEVICES_USED];
 
-extern const BCM_TxConfig_t BCM_TxConfigurations[BCM_COM_DEVICES_USED];
+extern const BCM_TxConfig_t BCM_TxConfigurations[BCM_TX_COM_DEVICES_USED];
 
 #endif /* BCM_H_ */

@@ -14,7 +14,6 @@
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "App Layer/Obstacle_Avoidance_Car/Robot Steering Module/Rbt_Steering.h"
 #include "App Layer/Obstacle_Avoidance_Car/Sensing Module/Sensing.h"
-#include "App Layer/Obstacle_Avoidance_Car/Display Module/Display.h"
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- CONSTANTS -*-*-*-*-*-*/

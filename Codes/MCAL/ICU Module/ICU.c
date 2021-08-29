@@ -22,7 +22,7 @@
 static uint8_t ICU_state[ICU_USED_CHANNELS] = {ICU_STOPPED} ;
 static uint32_t ICU_Counts[ICU_USED_CHANNELS] = {0};
 /*********************************************************************/
-static void ICU_CH0CallBackFunction(void)
+static void ICU_CH0CallBackFunction(uint8_t IntVect_Num)
 {
 	
 	if (ICU_state[ICU_CHANNEL_0] == ICU_RISING)

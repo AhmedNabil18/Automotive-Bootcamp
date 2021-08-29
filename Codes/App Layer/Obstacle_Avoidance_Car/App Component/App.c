@@ -8,6 +8,7 @@
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- INCLUDES *-*-*-*-*-*/
 #include "App.h"
+#include "App Layer/Operating System/OS.h"
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- GLOBAL STATIC VARIABLES *-*-*-*-*-*/
 static enuApp_Status_t enuCurrentAppStatus = APP_STATUS_UNINITIALIZED;
@@ -33,12 +34,19 @@ Std_ReturnType App_start(void)
 	if(App_init() != E_OK)
 		return E_NOT_OK;
 		
+	OS_TaskID_t SensingTask_ID=0, RobotTask_ID=0, CrashTask_ID=0;
+	
+	OS_createTask(&SensingTask_ID, Sensing_mainFunction, 5,	0);
+	OS_createTask(&CrashTask_ID, ObstacleAvoidance_mainFunction, 7,	1);
+	OS_createTask(&RobotTask_ID, RbtSteering_mainFunction , 10,	2);
+		
+	OS_Start();
 	/* Application Super Loop */
 	while (1)
 	{
-		/* Update the Applications */
-		if(App_update() != E_OK)
-			return E_NOT_OK;
+// 		/* Update the Applications */
+// 		if(App_update() != E_OK)
+// 			return E_NOT_OK;
 	}
 }
 
@@ -127,8 +135,8 @@ Std_ReturnType App_update(void)
 	/* Calling the Main function of the Robot Steering Module */
 	RbtSteering_mainFunction();
 	
-	/* Calling the Main function of the Display Module */
-	Display_mainFunction();
+// 	/* Calling the Main function of the Display Module */
+// 	Display_mainFunction();
 /*******************************************************************************/
 /*******************************************************************************/
 

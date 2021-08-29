@@ -84,7 +84,7 @@ Std_ReturnType ObstacleAvoidance_mainFunction(void)
 	Sensing_getReading(SENSING_FRONT_OBSTACLE_DISTANCE, &distance_u16);
 	
 	/* Integer Setter for Display Module */
-	set_DisplayInteger(DISPLAY_LCD_16x2_ID, distance_u16);
+	//set_DisplayInteger(DISPLAY_LCD_16x2_ID, distance_u16);
 	
 /* Take Robot Action */
 	/* If distance > OB_AVD_HIGH_THRESHOLD */

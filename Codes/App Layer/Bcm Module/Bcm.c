@@ -20,14 +20,14 @@
 
 
 /*- GLOBAL EXTERN VARIABLES -------------------------------------*/
-strRxComChannels_Data_t	arrStr_RxComChannels[COM_CHANNELS_USED];
-BCM_TxRequestData_t BCM_TxRequests[BCM_COM_DEVICES_USED][BCM_MAX_TX_REQUESTS];
-BCM_TxRequestData_t *BCM_TxCurrentRequest[BCM_COM_DEVICES_USED];
-uint16_t BCM_TxRequests_Counter[BCM_COM_DEVICES_USED] = {0};
-uint16_t BCM_TxRequests_Available[BCM_COM_DEVICES_USED] = {0};
-uint16_t BCM_TxRequest_Index[BCM_COM_DEVICES_USED] = {0};
-BCM_mainState_t BCM_TxCurrentChannelsState[BCM_COM_DEVICES_USED] = {BCM_MAINFUNC_STATE_IDLE};
-uint16_t BCM_dataCounter[BCM_COM_DEVICES_USED] = {0};
+strRxComChannels_Data_t	arrStr_RxComChannels[BCM_RX_COM_DEVICES_USED];
+BCM_TxRequestData_t BCM_TxRequests[BCM_TX_COM_DEVICES_USED][BCM_MAX_TX_REQUESTS];
+BCM_TxRequestData_t *BCM_TxCurrentRequest[BCM_TX_COM_DEVICES_USED];
+uint16_t BCM_TxRequests_Counter[BCM_TX_COM_DEVICES_USED] = {0};
+uint16_t BCM_TxRequests_Available[BCM_TX_COM_DEVICES_USED] = {0};
+uint16_t BCM_TxRequest_Index[BCM_TX_COM_DEVICES_USED] = {0};
+BCM_mainState_t BCM_TxCurrentChannelsState[BCM_TX_COM_DEVICES_USED] = {BCM_MAINFUNC_STATE_IDLE};
+uint16_t BCM_dataCounter[BCM_TX_COM_DEVICES_USED] = {0};
 
 
 
@@ -47,7 +47,7 @@ Std_ReturnType BCM_init(void)
 	
 	for(BCM_channelCounter=0; BCM_channelCounter<BCM_RX_COM_DEVICES_USED; BCM_channelCounter++)
 	{
-		Uart_EnableNotification_BCM(0);
+		//Uart_EnableNotification_BCM(0);
 		Interrupt_install(USART_RXC_IRQ, BCM_RxCallBack);
 	}
 	
@@ -91,17 +91,17 @@ Std_ReturnType BCM_RxMainFunction()
 * Return value: Std_ReturnType
 * Description: update state of a given device.
 ************************************************************************************/
-void BCM_RxCallBack(void)
+void BCM_RxCallBack(uint8_t IntVector_ID)
 {
 	uint8_t u8_RxData;
-	STATIC uint8_t u8_frameState = NOT_RECEIVED_YET;
-	STATIC uint8_t u8_dataSizeState = NOT_RECEIVED_YET;
-	STATIC uint8_t u8_dataSize = Initial_Value;
-	STATIC uint8_t u8_frameReceiveState = IDLE;
-	STATIC uint8_t u8_dataCounter = Initial_Value;
+	static uint8_t u8_frameState = NOT_RECEIVED_YET;
+	static uint8_t u8_dataSizeState = NOT_RECEIVED_YET;
+	static uint8_t u8_dataSize = Initial_Value;
+	static uint8_t u8_frameReceiveState = IDLE;
+	static uint8_t u8_dataCounter = Initial_Value;
 	
 	/* read byte from HW buffer */
-	strRxComChannels_Config[COM_CHANNEL_1_ID].channelReadFun(strRxComChannels_Config[COM_CHANNEL_1_ID].channelId, &u8_RxData);
+	strRxComChannels_Config[COM_CHANNEL_0_ID].channelReadFun(strRxComChannels_Config[COM_CHANNEL_0_ID].channelId, &u8_RxData);
 	
 	/* check for BCM ID */
 	if(u8_frameState == NOT_RECEIVED_YET)
@@ -133,7 +133,7 @@ void BCM_RxCallBack(void)
 		/* change state to running */
 		u8_frameReceiveState = RUNNING;
 		/* save current byte into buffer using channelReadFun */
-		arrStr_RxComChannels[COM_CHANNEL_1_ID].BCM_ComChannelRxBuffer[u8_dataCounter] = u8_RxData;
+		arrStr_RxComChannels[COM_CHANNEL_0_ID].BCM_ComChannelRxBuffer[u8_dataCounter] = u8_RxData;
 		/* increment data counter */
 		u8_dataCounter++;
 		/* check if last byte of data received then change state to RECEIVED */
@@ -149,7 +149,7 @@ void BCM_RxCallBack(void)
 	if(u8_frameReceiveState == RECEIVED)
 	{
 		/* calculate check sum of data and save it */
-		arrStr_RxComChannels[COM_CHANNEL_1_ID].BCM_ComChannelRxBuffer_Chksum = u8_RxData;
+		arrStr_RxComChannels[COM_CHANNEL_0_ID].BCM_ComChannelRxBuffer_Chksum = u8_RxData;
 		/* reset states */
 		u8_frameState = NOT_RECEIVED_YET;
 		u8_dataSizeState = NOT_RECEIVED_YET;
@@ -220,7 +220,7 @@ Std_ReturnType BCM_TxMainFunction(void)
 {
 	uint8_t BCM_channelCounter=0;
 	
-	for(BCM_channelCounter=0; BCM_channelCounter<BCM_COM_DEVICES_USED; BCM_channelCounter++)
+	for(BCM_channelCounter=0; BCM_channelCounter<BCM_TX_COM_DEVICES_USED; BCM_channelCounter++)
 	{
 		switch(BCM_TxCurrentChannelsState[BCM_channelCounter])
 		{
