@@ -51,6 +51,9 @@ typedef void (*BCM_CallBack_t)(uint8_t);
 
 typedef Std_ReturnType (*BCM_DeviceTXFunction)(uint8_t, uint8_t);
 typedef Std_ReturnType (*BCM_DeviceTxIntOnOff)(uint8_t);
+typedef Std_ReturnType (*BCM_DeviceRXFunction)(uint8_t, uint8_t*);
+typedef Std_ReturnType (*BCM_DeviceRxIntOnOff)(uint8_t);
+
 
 typedef uint8_t BCM_mainState_t;
 
@@ -58,7 +61,10 @@ typedef uint8_t BCM_mainState_t;
 typedef struct
 {
 	uint8_t channelId;
-	channelRead_t channelReadFun;
+	uint8_t BCM_Rx_INTVector_ID;
+	BCM_DeviceRXFunction channelReadFun;
+	BCM_DeviceRxIntOnOff BCM_RxIntEnable;
+	BCM_DeviceRxIntOnOff BCM_RxIntDisable;
 }strRxComChannels_Config_t;
 
 typedef struct

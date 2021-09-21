@@ -25,6 +25,22 @@ static strUart_Config_t strUart_Config =
 
 /*--*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
 /*-*-*-*-*- FUNCTIONS IMPLEMENTATION -*-*-*-*-*-*/
+enuUart_Status_t Uart_setBaudRate(uint32_t newBaudRate)
+{
+	/*- Set Baudrate Value in Registers -*/
+	if(strUart_Config.u8_DoubleSpeedEnable == UART_U2X_ENABLE)
+	{/*- If double speed enabled -*/
+		UBRRH_R = (uint8_t)(BAUD_RATE_U2X(newBaudRate)>>8);
+		UBRRL_R = (uint8_t)BAUD_RATE_U2X(newBaudRate);
+		UCSRA_R = 1<<UART_UCSRA_U2X;
+	}else
+	{/*- If double speed disabled -*/
+		UBRRH_R = (uint8_t)(BAUD_RATE(newBaudRate)>>8);
+		UBRRL_R = (uint8_t)BAUD_RATE(newBaudRate);
+		UCSRA_R &= ~(1<<UART_UCSRA_U2X);
+	}
+	return UART_STATUS_ERROR_OK;
+}
 
 /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
 * Service Name: Uart_init
@@ -57,21 +73,21 @@ enuUart_Status_t Uart_init(void)
 	/*- Set Baudrate Value in Registers -*/
 	if(strUart_Config.u8_DoubleSpeedEnable == UART_U2X_ENABLE)
 	{/*- If double speed enabled -*/
-		UART_UBRRH_REG = (uint8_t)(BAUD_RATE_U2X>>8);
-		UART_UBRRL_REG = (uint8_t)BAUD_RATE_U2X;
-		UART_UCSRA_REG = 1<<UART_UCSRA_U2X;
+		UBRRH_R = (uint8_t)(BAUD_RATE_U2X(USART_BAUDRATE)>>8);
+		UBRRL_R = (uint8_t)BAUD_RATE_U2X(USART_BAUDRATE);
+		UCSRA_R = 1<<UART_UCSRA_U2X;
 	}else
 	{/*- If double speed disabled -*/
-		UART_UBRRH_REG = (uint8_t)(BAUD_RATE>>8);
-		UART_UBRRL_REG = (uint8_t)BAUD_RATE;
-		UART_UCSRA_REG &= ~(1<<UART_UCSRA_U2X);	
+		UBRRH_R = (uint8_t)(BAUD_RATE(USART_BAUDRATE)>>8);
+		UBRRL_R = (uint8_t)BAUD_RATE(USART_BAUDRATE);
+		UCSRA_R &= ~(1<<UART_UCSRA_U2X);	
 	}
 	/* Enable receiver and/or transmitter */
-	UART_UCSRB_REG = strUart_Config.u8_Enable;
+	UCSRB_R = strUart_Config.u8_Enable;
 	/* Enable bit UCSZ2 if DataFrameSize is 9 bits */
 	if(strUart_Config.u8_DataFrameSize == UART_SIZE_9_BITS)
 	{
-		UART_UCSRB_REG |= 1 << UART_UCSRB_UCSZ2;
+		UCSRB_R |= 1 << UART_UCSRB_UCSZ2;
 	}
 // 	/* Set the Interrupts if Enabled */
 // 	if(strUart_Config.u8_Interrupt != UART_INTERRUPT_DISABLE)
@@ -79,15 +95,15 @@ enuUart_Status_t Uart_init(void)
 // 		UART_UCSRB_REG |= strUart_Config.u8_Interrupt;
 // 	}
 	/* Set the stop bits */
-	UART_UCSRC_REG = (1<<UART_UCSRC_URSEL)|(strUart_Config.u8_StopBits<<UART_UCSRC_USBS);
+	UCSRC_R = (1<<UART_UCSRC_URSEL)|(strUart_Config.u8_StopBits<<UART_UCSRC_USBS);
 	
 	/* Set the DataFrameSize in UCSZ0 and UCSZ1 */
-	UART_UCSRC_REG |= (1<<UART_UCSRC_URSEL)|(((strUart_Config.u8_DataFrameSize) & 0x03)<<UART_UCSRC_UCSZ0);
+	UCSRC_R |= (1<<UART_UCSRC_URSEL)|(((strUart_Config.u8_DataFrameSize) & 0x03)<<UART_UCSRC_UCSZ0);
 	
 	/* Set the Parity Mode Disabled or Enabled Even/Odd */
 	if(strUart_Config.u8_ParityMode != UART_PARITY_DISABLE)
 	{
-		UART_UCSRC_REG |= (1<<UART_UCSRC_URSEL)|((strUart_Config.u8_ParityMode) << UART_UCSRC_UPM0);
+		UCSRC_R |= (1<<UART_UCSRC_URSEL)|((strUart_Config.u8_ParityMode) << UART_UCSRC_UPM0);
 	}
 	
 	/*- Set the Uart module state to initialized -*/
@@ -125,9 +141,9 @@ enuUart_Status_t Uart_sendByte(uint8_t u8_Data)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	/* Wait till the data register is empty */
-	while (!(UART_UCSRA_REG & (1<<UART_UCSRA_UDRE)));
+	while (!(UCSRA_R & (1<<UART_UCSRA_UDRE)));
 	/* Fill the data register with the data to be sent */
-	UART_UDR_REG = u8_Data ;
+	UDR_R = u8_Data ;
 	
 	return UART_STATUS_ERROR_OK;
 }
@@ -165,7 +181,7 @@ Std_ReturnType Uart_writeByte(uint8_t Uart_ChannelID, uint8_t u8_data)
 	/* Wait till the data register is empty */
 	/*while (!(UART_UCSRA_REG & (1<<UART_UCSRA_UDRE)));*/
 	/* Fill the data register with the data to be sent */
-	UART_UDR_REG = u8_data ;
+	UDR_R = u8_data ;
 		
 	return E_OK;
 }
@@ -241,10 +257,10 @@ enuUart_Status_t Uart_receiveByte(uint8_t *pu8_Data)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	/* Wait till the data register has data */
-	while (!(UART_UCSRA_REG & (1<<UART_UCSRA_RXC)));
+	while (!(UCSRA_R & (1<<UART_UCSRA_RXC)));
 	
 	/* Read the received Data from data register */
-	*pu8_Data = UART_UDR_REG;
+	*pu8_Data = UDR_R;
 	return UART_STATUS_ERROR_OK;	
 }
 
@@ -281,7 +297,7 @@ Std_ReturnType Uart_readByte(uint8_t Uart_ChannelID, uint8_t *pu8_data)
 // 	while (!(UART_UCSRA_REG & (1<<UART_UCSRA_RXC)));
 		
 	/* Read the received Data from data register */
-	*pu8_data = UART_UDR_REG;
+	*pu8_data = UDR_R;
 	return E_OK;
 }
 
@@ -365,7 +381,7 @@ Std_ReturnType Uart_EnableNotification_TXC(uint8_t Uart_ChannelID)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	/*- Enable the Uart TXC Interrupt -*/
-	UART_UCSRB_REG |= UART_INTERRUPT_TXCIE;
+	UCSRB_R |= UART_INTERRUPT_TXCIE;
 	/* Assign the Callback function to the UART's ISR Handler Caller */
 	/*Interrupt_install(USART_TXC_IRQ, Uart_Callback);*/
 		
@@ -383,7 +399,7 @@ Std_ReturnType Uart_EnableNotification_TXC(uint8_t Uart_ChannelID)
 * Description: Function to Enable the Interrupt RXC Flag and assign Uart_Callback as a 
 *              callback function to it.
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback)
+enuUart_Status_t Uart_EnableNotification_RXC(uint8_t Uart_ChannelID)
 {
 /**************************************************************************************/
 /*								Start of Error Checking								  */
@@ -393,11 +409,6 @@ enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback)
 	{
 		return UART_STATUS_NOT_INIT;
 	}else{/*Nothing to here*/}
-	/* Check if the Callback pointer is NULL */
-	if(Uart_Callback == NULL_PTR)
-	{
-		return UART_STATUS_NULL_ARGUMENT;
-	}else{/*Nothing to here*/}
 /**************************************************************************************/
 /*								End of Error Checking								  */
 /**************************************************************************************/
@@ -406,7 +417,7 @@ enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	/*- Enable the Uart RXC Interrupt -*/
-	UART_UCSRB_REG |= UART_INTERRUPT_RXCIE;
+	UCSRB_R |= UART_INTERRUPT_RXCIE;
 	/* Assign the Callback function to the UART's ISR Handler Caller */
 	/*Interrupt_install(USART_RXC_IRQ, Uart_Callback);*/
 		
@@ -424,7 +435,7 @@ enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback)
 * Description: Function to Enable the Interrupt UDRE Flag and assign Uart_Callback as a
 *              callback function to it.
 *-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
-enuUart_Status_t Uart_EnableNotification_UDRE(pfUart_CallBack_t Uart_Callback)
+enuUart_Status_t Uart_EnableNotification_UDRE(uint8_t Uart_ChannelID)
 {
 /**************************************************************************************/
 /*								Start of Error Checking								  */
@@ -434,11 +445,6 @@ enuUart_Status_t Uart_EnableNotification_UDRE(pfUart_CallBack_t Uart_Callback)
 	{
 		return UART_STATUS_NOT_INIT;
 	}else{/*Nothing to here*/}
-	/* Check if the Callback pointer is NULL */
-	if(Uart_Callback == NULL_PTR)
-	{
-		return UART_STATUS_NULL_ARGUMENT;
-	}else{/*Nothing to here*/}
 /**************************************************************************************/
 /*								End of Error Checking								  */
 /**************************************************************************************/
@@ -447,9 +453,9 @@ enuUart_Status_t Uart_EnableNotification_UDRE(pfUart_CallBack_t Uart_Callback)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	/*- Enable the Uart UDRE Interrupt -*/
-	UART_UCSRB_REG |= UART_INTERRUPT_UDRIE;
+	UCSRB_R |= UART_INTERRUPT_UDRIE;
 	/* Assign the Callback function to the UART's ISR Handler Caller */
-	Interrupt_install(USART_UDRE_IRQ, Uart_Callback);
+	//Interrupt_install(USART_UDRE_IRQ, Uart_Callback);
 	return UART_STATUS_ERROR_OK;
 }
 
@@ -483,8 +489,42 @@ Std_ReturnType Uart_DisableNotification_TXC(uint8_t Uart_ChannelID)
 /*								Function Implementation								  */
 /**************************************************************************************/
 	/*- Disable the Uart TXC Interrupt -*/
-	UART_UCSRB_REG &= ~UART_INTERRUPT_TXCIE;
+	UCSRB_R &= ~UART_INTERRUPT_TXCIE;
 			
+	return E_OK;
+}
+
+/*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*
+* Service Name: Uart_DisableNotification
+* Sync/Async: Synchronous
+* Reentrancy: Reentrant
+* Parameters (in): u8_InterruptFlags - Interrupt Flags to be stopped.
+*					@options: UART_INTERRUPT_RXCIE | UART_INTERRUPT_TXCIE | UART_INTERRUPT_UDRIE
+* Parameters (inout): None
+* Parameters (out): None
+* Return value: enuUart_Status_t - return the status of the function ERROR_OK or NOT_OK
+* Description: Function to Disable the given interrupt flag/s.
+*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
+Std_ReturnType Uart_DisableNotification_RXC(uint8_t Uart_ChannelID)
+{
+/**************************************************************************************/
+/*								Start of Error Checking								  */
+/**************************************************************************************/
+	/* Check if the Uart module is not initialized */
+	if (UART_NOT_INITIALIZED == u8_Uart_Status)
+	{
+		return E_NOT_OK;
+	}else{/*Nothing to here*/}
+/**************************************************************************************/
+/*								End of Error Checking								  */
+/**************************************************************************************/
+
+/**************************************************************************************/
+/*								Function Implementation								  */
+/**************************************************************************************/
+	/*- Disable the Uart TXC Interrupt -*/
+	UCSRB_R &= ~UART_INTERRUPT_RXCIE;
+	
 	return E_OK;
 }
 
@@ -495,6 +535,6 @@ Std_ReturnType Uart_DisableNotification_TXC(uint8_t Uart_ChannelID)
 *********************************************************/
 uint8_t Uart_DataRegister(void)
 {
-	return UART_UDR_REG;
+	return UDR_R;
 }
 

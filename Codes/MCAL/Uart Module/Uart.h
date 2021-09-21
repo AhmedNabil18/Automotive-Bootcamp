@@ -52,8 +52,8 @@
 
 /*-*-*-*-*-*-*-*-*--*-*-*-*-*-*/
 /*-*-*-*-*- MACROS -*-*-*-*-*-*/
-#define BAUD_RATE					(((F_OSC / (USART_BAUDRATE * 16UL))) - 1)
-#define BAUD_RATE_U2X				(((F_OSC / (USART_BAUDRATE * 8UL))) - 1)
+#define BAUD_RATE(baud)					(((F_OSC / (baud * 16UL))) - 1)
+#define BAUD_RATE_U2X(baud)				(((F_OSC / (baud * 8UL))) - 1)
 
 /*
  * Data Type for a pointer to notification call back function
@@ -119,16 +119,22 @@ enuUart_Status_t Uart_receivePacket(uint8_t *pu8_Data, uint16_t u16_packetSize);
 enuUart_Status_t Uart_EnableNotification_TXC(uint8_t Uart_ChannelID);
 
 /*- Enable Interrupt Notification for RXC by calling Callback function -*/
-enuUart_Status_t Uart_EnableNotification_RXC(pfUart_CallBack_t Uart_Callback);
+enuUart_Status_t Uart_EnableNotification_RXC(uint8_t Uart_ChannelID);
 
 /*- Enable Interrupt Notification for UDRE by calling Callback function -*/
-enuUart_Status_t Uart_EnableNotification_UDRE(pfUart_CallBack_t Uart_Callback);
+enuUart_Status_t Uart_EnableNotification_UDRE(uint8_t Uart_ChannelID);
 
 /*- Disable Interrupt Notification for the given Interrupt Flag -*/
 enuUart_Status_t Uart_DisableNotification_TXC(uint8_t Uart_ChannelID);
 
+/*- Disable Interrupt Notification for the given Interrupt Flag -*/
+enuUart_Status_t Uart_DisableNotification_RXC(uint8_t Uart_ChannelID);
+
 /*- Read the data register directly -*/
 uint8_t Uart_DataRegister(void);
+
+/*- Change the baud rate of the Uart in runtime -*/
+enuUart_Status_t Uart_setBaudRate(uint32_t newBaudRate);
 /*******************************************************************************
  *                       External Variables                                    *
  *******************************************************************************/

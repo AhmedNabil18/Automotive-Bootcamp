@@ -5,9 +5,11 @@
  *  Authors: Mohamed Magdy & Ahmed Nabil 
  */ 
 
+
 /*- INCLUDES
 ----------------------------------------------*/
 #include "Bcm.h"
+
 
 /*- CONSTANTS
 ----------------------------------------------*/
@@ -44,13 +46,14 @@ Std_ReturnType BCM_init(void)
 	uint8_t BCM_channelCounter=0;
 	
 	
-	
+	/* Initialize the Receiver Channels */
 	for(BCM_channelCounter=0; BCM_channelCounter<BCM_RX_COM_DEVICES_USED; BCM_channelCounter++)
 	{
-		//Uart_EnableNotification_BCM(0);
-		Interrupt_install(USART_RXC_IRQ, BCM_RxCallBack);
+		strRxComChannels_Config[BCM_channelCounter].BCM_RxIntEnable(strRxComChannels_Config[BCM_channelCounter].channelId);
+		Interrupt_install(strRxComChannels_Config[BCM_channelCounter].BCM_Rx_INTVector_ID, BCM_RxCallBack);
 	}
 	
+	/* Initialize the Transmitter Channels */
 	for(BCM_channelCounter=0; BCM_channelCounter<BCM_TX_COM_DEVICES_USED; BCM_channelCounter++)
 	{
 		Interrupt_install(BCM_TxConfigurations[BCM_channelCounter].BCM_Tx_INTVector_ID, BCM_TxCallBack_Function);

@@ -20,5 +20,5 @@ const BCM_TxConfig_t BCM_TxConfigurations[BCM_TX_COM_DEVICES_USED] =
 strRxComChannels_Config_t strRxComChannels_Config[BCM_RX_COM_DEVICES_USED] =
 {
 	/* com channel id */  /* BCM channel read fun */
-	{C_CHANNEL_1_ID,         Uart_readByte}
+	{C_CHANNEL_1_ID,  USART_RXC_IRQ, Uart_readByte, Uart_EnableNotification_RXC, Uart_DisableNotification_RXC}
 };
