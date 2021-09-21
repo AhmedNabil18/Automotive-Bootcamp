@@ -1,0 +1,98 @@
+
+Allocating common symbols
+Common symbol       size              file
+
+globalChar          0x1               Test.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+FLASH            0x00000000         0x00040000         xr
+SRAM             0x20000000         0x00008000         xrw
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+                0x00000000                PROVIDE (_intvecs_base_address = 0x0)
+
+.intvecs
+ *(.intvecs)
+
+.text           0x00000000       0x60
+ CREATE_OBJECT_SYMBOLS
+ *(.text)
+ .text          0x00000000       0x60 Test.o
+                0x00000000                func
+                0x00000018                main
+ *(.text.*)
+
+.glue_7         0x00000060        0x0
+ .glue_7        0x00000060        0x0 linker stubs
+
+.glue_7t        0x00000060        0x0
+ .glue_7t       0x00000060        0x0 linker stubs
+
+.vfp11_veneer   0x00000060        0x0
+ .vfp11_veneer  0x00000060        0x0 linker stubs
+
+.v4_bx          0x00000060        0x0
+ .v4_bx         0x00000060        0x0 linker stubs
+
+.iplt           0x00000060        0x0
+ .iplt          0x00000060        0x0 Test.o
+
+.mySection      0x00000060        0x1
+ *(.section)
+ .mySection     0x00000060        0x1 Test.o
+                0x00000060                specialGLobChar
+
+.rodata         0x00000061        0x2
+ *(.rodata)
+ .rodata        0x00000061        0x2 Test.o
+                0x00000061                constGlobalChar
+ *(.rodata*)
+
+.rel.dyn        0x00000064        0x0
+ .rel.iplt      0x00000064        0x0 Test.o
+
+.data           0x20000000        0x0 load address 0x00000064
+                0x00000064                __data_load__ = LOADADDR (.data)
+                0x20000000                __data_start__ = .
+ *(.data)
+ .data          0x20000000        0x0 Test.o
+ *(.data*)
+                0x20000000                . = ALIGN (0x4)
+                0x20000000                __data_end__ = .
+
+.igot.plt       0x20000000        0x0 load address 0x00000064
+ .igot.plt      0x20000000        0x0 Test.o
+
+.bss            0x20000000        0x4 load address 0x00000064
+                0x20000000                __bss_start__ = .
+ *(.shbss)
+ *(.bss)
+ .bss           0x20000000        0x0 Test.o
+ *(.bss.*)
+ *(COMMON)
+ COMMON         0x20000000        0x1 Test.o
+                0x20000000                globalChar
+                0x20000004                . = ALIGN (0x4)
+ *fill*         0x20000001        0x3 
+                0x20000004                __bss_end__ = .
+
+.stack          0x20000008        0x0 load address 0x00000068
+                0x20000008                _stack = .
+                0x20000008                __stack = .
+ *(.stack)
+LOAD Test.o
+OUTPUT(Test.elf elf32-littlearm)
+LOAD linker stubs
+
+.comment        0x00000000       0x4c
+ .comment       0x00000000       0x4c Test.o
+                                 0x4d (size before relaxing)
+
+.ARM.attributes
+                0x00000000       0x2e
+ .ARM.attributes
+                0x00000000       0x2e Test.o
